@@ -1,7 +1,6 @@
 :root {
   --background: #0b0f19;
   --card: #111827;
-  --card-light: #172033;
   --text: #f9fafb;
   --muted: #9ca3af;
   --accent: #38bdf8;
@@ -76,7 +75,10 @@ h1 {
   border: 1px solid var(--border);
   border-radius: 999px;
   background: rgba(17, 24, 39, 0.72);
-  transition: transform 0.2s ease, border-color 0.2s ease, background 0.2s ease;
+  transition:
+    transform 0.2s ease,
+    border-color 0.2s ease,
+    background 0.2s ease;
 }
 
 .links a:hover {
@@ -85,7 +87,8 @@ h1 {
   background: rgba(56, 189, 248, 0.12);
 }
 
-.card {
+.card,
+.quote-card {
   margin-bottom: 20px;
   padding: 26px;
   border: 1px solid var(--border);
@@ -93,6 +96,41 @@ h1 {
   background: rgba(17, 24, 39, 0.76);
   box-shadow: 0 20px 60px rgba(0, 0, 0, 0.25);
   backdrop-filter: blur(12px);
+}
+
+.quote-card {
+  margin: 10px 0 28px;
+  padding: 32px;
+  background:
+    linear-gradient(
+      135deg,
+      rgba(56, 189, 248, 0.14),
+      rgba(17, 24, 39, 0.9)
+    );
+}
+
+.quote-mark {
+  margin: 0;
+  color: var(--accent);
+  font-size: 4rem;
+  line-height: 0.8;
+  font-weight: 800;
+}
+
+.quote-card blockquote {
+  margin: 0;
+  max-width: 720px;
+  color: var(--text);
+  font-size: clamp(1.45rem, 4vw, 2.5rem);
+  line-height: 1.18;
+  letter-spacing: -0.045em;
+  font-weight: 750;
+}
+
+.quote-source {
+  margin-top: 18px;
+  color: var(--muted);
+  font-size: 0.95rem;
 }
 
 .grid {
@@ -154,7 +192,8 @@ footer p {
     grid-template-columns: 1fr;
   }
 
-  .card {
+  .card,
+  .quote-card {
     padding: 22px;
     border-radius: 20px;
   }
