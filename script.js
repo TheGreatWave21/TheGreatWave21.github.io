@@ -36,15 +36,14 @@ const CONTENT = {
 
   /* ---- Boot sequence + greeting ---------------------------------------- */
   boot: [
-    "GREATWAVE BIOS 2.1 :: memory check ... 640K OK",
-    "BOOTING GREATWAVE OS v1.0 ... OK",
-    "mounting /home/kenan ... OK",
+    "Greatwave OS 2.0 · initializing display system",
+    "Linking /home/kenan ··· online",
   ],
   greeting: "Heya, I'm Kenan.",
   tagline: "Software · Engineering · Robotics",
   intro: "I'm a student interested in software, engineering, physics, automation, and applied technology.",
   quote: "Force without power falls to its own weight.",
-  hint: "~ Type {help} and press Enter, or pick a command from the bar above.",
+  hint: "~ Pick a command from the panel, or type {help} and press Enter.",
 
   /* ---- help: public commands, in display order. Anything not listed here
           is a hidden easter egg. ----------------------------------------- */
@@ -192,6 +191,11 @@ const CONTENT = {
     ],
     exit: ["~ There is no exit, only the close-tab button."],
     cd: ["~ You're already home."],
+    alert: [
+      "! RED ALERT. All hands to battle stations.",
+      "~ ...false alarm. Someone left a soldering iron on. Standing down in 5 seconds.",
+    ],
+    alertReduced: ["! RED ALERT (no flashing: your system asks for reduced motion). Standing down in 5 seconds."],
     matrixIntro: ["Wake up, guest ...", "~ (any key or click to stop)"],
     matrixOutro: ["~ Back in the real world. Try {help}."],
     matrixReduced: ["~ matrix: skipped, because your system asks for reduced motion.", "Wake up, guest ... and follow the white rabbit: {projects}"],
@@ -212,7 +216,8 @@ const CONTENT = {
 
   /* ---- Elements ---------------------------------------------------------- */
   const root = document.documentElement;
-  const term = document.getElementById("term");
+  const term = document.getElementById("console");
+  const display = document.getElementById("display");
   const out = document.getElementById("output");
   const form = document.getElementById("prompt");
   const input = document.getElementById("cmd");
@@ -403,6 +408,7 @@ const CONTENT = {
     exit: function (b) { b.print(CONTENT.eggs.exit); },
     cd: function (b) { b.print(CONTENT.eggs.cd); },
     matrix: function (b) { matrix(b); },
+    alert: function (b) { redAlert(b); },
   };
 
   /* Other spellings people will try. */
@@ -416,6 +422,7 @@ const CONTENT = {
     git: "github",
     logout: "exit", quit: "exit",
     tea: "coffee",
+    red: "alert", redalert: "alert", "red-alert": "alert",
   };
 
   /* "cat about.txt", "cd flow/", "./projects" … all resolve to a command. */
@@ -462,6 +469,8 @@ const CONTENT = {
       historyPos = history.length;
     }
     const name = text ? resolve(text) : "";
+    if (text) setCount(commandCount + 1);
+    markCurrent(name);
 
     if (name === "clear") {
       clearScreen();
@@ -486,6 +495,44 @@ const CONTENT = {
     out.replaceChildren();
     out.scrollTop = 0;
   }
+
+  /* Highlights the panel button for the command that just ran. */
+  const buttons = Array.from(document.querySelectorAll(".cmds .btn"));
+  function markCurrent(name) {
+    buttons.forEach(function (btn) {
+      const on = btn.dataset.cmd === name;
+      btn.classList.toggle("is-current", on);
+      if (on) btn.setAttribute("aria-current", "true");
+      else btn.removeAttribute("aria-current");
+    });
+  }
+
+  /* ---- Header readouts: real date, local time, session time, commands ---- */
+  const started = Date.now();
+  let commandCount = 0;
+  const ro = {
+    date: document.getElementById("ro-date"),
+    time: document.getElementById("ro-time"),
+    up: document.getElementById("ro-up"),
+    cmds: document.getElementById("ro-cmds"),
+  };
+  const pad = function (n) { return String(n).padStart(2, "0"); };
+
+  function tickClock() {
+    const now = new Date();
+    const up = Math.floor((Date.now() - started) / 1000);
+    ro.date.textContent = now.getFullYear() + "." + pad(now.getMonth() + 1) + "." + pad(now.getDate());
+    ro.time.textContent = pad(now.getHours()) + ":" + pad(now.getMinutes()) + ":" + pad(now.getSeconds());
+    ro.up.textContent = pad(Math.floor(up / 3600)) + ":" + pad(Math.floor(up / 60) % 60) + ":" + pad(up % 60);
+  }
+
+  function setCount(n) {
+    commandCount = n;
+    ro.cmds.textContent = String(n).padStart(3, "0");
+  }
+
+  tickClock();
+  setInterval(tickClock, 1000);
 
   /* ---- Clicks: chips, commands in the output, focus ---------------------- */
   document.addEventListener("click", function (e) {
@@ -605,7 +652,7 @@ const CONTENT = {
   const vv = window.visualViewport;
   function fitViewport() {
     root.style.setProperty("--app-h", (vv ? vv.height : window.innerHeight) + "px");
-    document.querySelector(".screen").style.transform = vv && vv.offsetTop ? "translateY(" + vv.offsetTop + "px)" : "";
+    term.style.transform = vv && vv.offsetTop ? "translateY(" + vv.offsetTop + "px)" : "";
   }
   fitViewport();
   if (vv) {
@@ -640,6 +687,7 @@ const CONTENT = {
   function skipBoot() {
     if (!booting || skipped) return;
     skipped = true;
+    root.classList.remove("powering");
     Array.from(waiters).forEach(function (finish) { finish(); });
   }
 
@@ -663,9 +711,11 @@ const CONTENT = {
 
     const block = newBlock();
     if (replay) {
+      root.classList.add("powering"); // panel power-on animation (CSS)
+      await sleep(450);
       for (const text of CONTENT.boot) {
-        await type(block.add(el("p", "line dim")), text, 5);
-        await sleep(90);
+        await type(block.add(el("p", "line boot")), text, 6);
+        await sleep(110);
       }
       block.add(el("p", "line"));
     }
@@ -684,52 +734,46 @@ const CONTENT = {
     store("setItem", BOOT_KEY, "1");
     out.setAttribute("aria-busy", "false");
     booting = false;
+    setTimeout(function () { root.classList.remove("powering"); }, 600);
   }
 
-  /* ---- Mouse glow + short fading trail (mouse devices only) --------------
-     One canvas, one pre-rendered glow sprite, a rAF loop that stops when
-     the trail has faded.                                                   */
+  /* ---- Pointer trail (mouse devices only) --------------------------------
+     A faint, thin line of small dots that fades within ~1/4 s. No halo.
+     TRAIL_ALPHA sets how visible it is (0 turns it off).                   */
+  const TRAIL_ALPHA = 0.16;
+
   function initTrail() {
+    if (!TRAIL_ALPHA) return;
     const canvas = document.getElementById("trail");
     const ctx = canvas.getContext("2d");
     if (!ctx) return;
     canvas.classList.add("on");
 
-    const sprite = document.createElement("canvas");
-    sprite.width = sprite.height = 128;
-    const sctx = sprite.getContext("2d");
-    const grad = sctx.createRadialGradient(64, 64, 0, 64, 64, 64);
-    grad.addColorStop(0, "rgba(51,255,102,1)");
-    grad.addColorStop(0.4, "rgba(51,255,102,0.35)");
-    grad.addColorStop(1, "rgba(51,255,102,0)");
-    sctx.fillStyle = grad;
-    sctx.fillRect(0, 0, 128, 128);
-
-    const LIFE = 420; // ms a trail dot lives
+    const LIFE = 260; // ms a dot lives
     const points = [];
-    let mouse = null;
     let frame = 0;
+    let dpr = 1;
 
     function resize() {
-      canvas.width = window.innerWidth;
-      canvas.height = window.innerHeight;
+      dpr = Math.min(window.devicePixelRatio || 1, 2);
+      canvas.width = window.innerWidth * dpr;
+      canvas.height = window.innerHeight * dpr;
+      ctx.setTransform(dpr, 0, 0, dpr, 0, 0);
       schedule();
-    }
-
-    function blob(x, y, size, alpha) {
-      ctx.globalAlpha = alpha;
-      ctx.drawImage(sprite, x - size / 2, y - size / 2, size, size);
     }
 
     function draw(now) {
       frame = 0;
       ctx.clearRect(0, 0, canvas.width, canvas.height);
       while (points.length && now - points[0].t > LIFE) points.shift();
+      ctx.fillStyle = getComputedStyle(root).getPropertyValue("--p2").trim() || "#ffcc99";
       points.forEach(function (p) {
         const life = 1 - (now - p.t) / LIFE;
-        blob(p.x, p.y, 16 + 34 * life, 0.2 * life);
+        ctx.globalAlpha = TRAIL_ALPHA * life;
+        ctx.beginPath();
+        ctx.arc(p.x, p.y, 1 + 1.5 * life, 0, Math.PI * 2);
+        ctx.fill();
       });
-      if (mouse) blob(mouse.x, mouse.y, 190, 0.17); // the soft glow itself
       if (points.length) schedule();
     }
 
@@ -740,20 +784,26 @@ const CONTENT = {
     window.addEventListener("pointermove", function (e) {
       if (e.pointerType !== "mouse") return;
       const last = points[points.length - 1];
-      mouse = { x: e.clientX, y: e.clientY };
-      if (!last || Math.hypot(e.clientX - last.x, e.clientY - last.y) > 6) {
+      if (!last || Math.hypot(e.clientX - last.x, e.clientY - last.y) > 5) {
         points.push({ x: e.clientX, y: e.clientY, t: performance.now() });
-        if (points.length > 28) points.shift();
+        if (points.length > 18) points.shift();
       }
       schedule();
     }, { passive: true });
 
-    root.addEventListener("mouseleave", function () {
-      mouse = null;
-      schedule();
-    });
     window.addEventListener("resize", resize);
     resize();
+  }
+
+  /* ---- Easter egg: red alert ---------------------------------------------- */
+  let alertTimer = 0;
+  function redAlert(block) {
+    block.print(REDUCED ? CONTENT.eggs.alertReduced : CONTENT.eggs.alert);
+    root.classList.add("red-alert");
+    clearTimeout(alertTimer);
+    alertTimer = setTimeout(function () {
+      root.classList.remove("red-alert");
+    }, 5000);
   }
 
   /* ---- Easter egg: matrix ------------------------------------------------ */
@@ -769,23 +819,23 @@ const CONTENT = {
 
     const canvas = el("canvas", "matrix");
     canvas.setAttribute("aria-hidden", "true");
-    term.append(canvas);
+    display.append(canvas);
     const ctx = canvas.getContext("2d");
     const size = 16;
-    canvas.width = term.clientWidth;
-    canvas.height = term.clientHeight;
+    canvas.width = display.clientWidth;
+    canvas.height = display.clientHeight;
     const glyphs = "アイウエオカキクケコサシスセソタチツテトナニヌネノ0123456789<>/_$#";
     const drops = [];
     for (let c = 0; c < Math.ceil(canvas.width / size); c++) drops.push(Math.random() * -40);
-    ctx.fillStyle = "#050a05";
+    ctx.fillStyle = "#000";
     ctx.fillRect(0, 0, canvas.width, canvas.height);
 
     const tick = setInterval(function () {
-      ctx.fillStyle = "rgba(5,10,5,0.14)";
+      ctx.fillStyle = "rgba(0,0,0,0.14)";
       ctx.fillRect(0, 0, canvas.width, canvas.height);
       ctx.font = size + "px monospace";
       drops.forEach(function (y, c) {
-        ctx.fillStyle = Math.random() > 0.94 ? "#d2ffdc" : "#33ff66";
+        ctx.fillStyle = Math.random() > 0.94 ? "#e9ffee" : "#3cff74";
         ctx.fillText(glyphs[Math.floor(Math.random() * glyphs.length)], c * size, y * size);
         drops[c] = y * size > canvas.height && Math.random() > 0.96 ? 0 : y + 1;
       });

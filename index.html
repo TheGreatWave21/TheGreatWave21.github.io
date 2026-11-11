@@ -2,7 +2,7 @@
 <html lang="en" class="no-js">
 <head>
   <meta charset="UTF-8" />
-  <meta name="viewport" content="width=device-width, initial-scale=1.0" />
+  <meta name="viewport" content="width=device-width, initial-scale=1.0, viewport-fit=cover" />
 
   <title>Kenan | Code &amp; Circuits Guy</title>
   <meta
@@ -16,12 +16,13 @@
   <meta property="og:title" content="Kenan | Code &amp; Circuits Guy" />
   <meta
     property="og:description"
-    content="Software · Engineering · Robotics. A terminal-style home page: type or tap a command to look around."
+    content="Software · Engineering · Robotics. A console-style home page: type or tap a command to look around."
   />
 
-  <meta name="theme-color" content="#050a05" />
+  <meta name="theme-color" content="#000000" />
   <meta name="color-scheme" content="dark" />
   <link rel="icon" type="image/svg+xml" href="assets/favicon.svg" />
+  <link rel="preload" href="assets/fonts/Antonio.ttf" as="font" type="font/ttf" crossorigin />
 
   <!-- Marks the page as JS-capable before first paint (CSS hides the
        interactive parts when this class is missing). -->
@@ -32,29 +33,60 @@
 </head>
 
 <body>
-  <div class="screen">
-    <main class="term" id="term">
+  <!-- ======================================================================
+       Console frame. Grid areas are set in style.css (section 3).
+       Everything with aria-hidden="true" is decoration.
+       ====================================================================== -->
+  <div class="console" id="console">
 
-      <!-- Title bar -->
-      <header class="titlebar">
-        <h1 class="titlebar-name">Kenan <span aria-hidden="true">//</span> Code &amp; Circuits Guy</h1>
-        <span class="titlebar-sys" aria-hidden="true">GREATWAVE OS v1.0</span>
-      </header>
+    <!-- Upper frame: header -->
+    <div class="cap" aria-hidden="true"><span>TGW&#8209;21</span></div>
 
-      <!-- Always-visible command bar: every chip runs the command as if typed -->
-      <nav class="cmdbar" aria-label="Terminal commands">
-        <span class="cmdbar-label" aria-hidden="true">run:</span>
-        <button type="button" class="chip" data-cmd="about">about</button>
-        <button type="button" class="chip" data-cmd="projects">projects</button>
-        <button type="button" class="chip" data-cmd="barcona">barcona</button>
-        <button type="button" class="chip" data-cmd="flow">flow</button>
-        <button type="button" class="chip" data-cmd="github">github</button>
-        <button type="button" class="chip" data-cmd="contact">contact</button>
-        <button type="button" class="chip" data-cmd="help">help</button>
+    <header class="head">
+      <dl class="readout" aria-hidden="true">
+        <div><dt>DATE</dt><dd id="ro-date">----.--.--</dd></div>
+        <div><dt>LOCAL</dt><dd id="ro-time">--:--:--</dd></div>
+        <div class="ro-wide"><dt>SESSION</dt><dd id="ro-up">00:00:00</dd></div>
+        <div class="ro-wide"><dt>CMDS</dt><dd id="ro-cmds">000</dd></div>
+      </dl>
+      <h1 class="title">
+        <span class="title-name">Kenan</span>
+        <span class="title-sub">Code &amp; Circuits Guy</span>
+      </h1>
+    </header>
+
+    <div class="bar bar-head" aria-hidden="true">
+      <i class="seg s1"></i><i class="seg s2 w-xs"></i><i class="seg s3 grow"></i><i class="seg s4 w-sm"></i><i class="seg s2 w-xs end"></i>
+    </div>
+
+    <!-- Lower frame: rail (commands) + display -->
+    <div class="bar bar-top" aria-hidden="true">
+      <i class="seg s2"></i><i class="seg s5 w-sm"></i><i class="seg s3 grow"></i><i class="seg s1 w-xs"></i><i class="seg s4 w-md end"></i>
+    </div>
+
+    <div class="rail">
+      <div class="rail-elbow" aria-hidden="true"><span>02&#8209;4471</span></div>
+
+      <!-- Command buttons: each runs its command exactly as if typed -->
+      <nav class="cmds" aria-label="Commands">
+        <button type="button" class="btn c-a" data-cmd="about"><span class="btn-num" aria-hidden="true">01</span>about</button>
+        <button type="button" class="btn c-b" data-cmd="projects"><span class="btn-num" aria-hidden="true">02</span>projects</button>
+        <button type="button" class="btn c-c" data-cmd="barcona"><span class="btn-num" aria-hidden="true">03</span>barcona</button>
+        <button type="button" class="btn c-d" data-cmd="flow"><span class="btn-num" aria-hidden="true">04</span>flow</button>
+        <button type="button" class="btn c-b" data-cmd="github"><span class="btn-num" aria-hidden="true">05</span>github</button>
+        <button type="button" class="btn c-e" data-cmd="contact"><span class="btn-num" aria-hidden="true">06</span>contact</button>
+        <button type="button" class="btn c-a" data-cmd="help"><span class="btn-num" aria-hidden="true">07</span>help</button>
       </nav>
 
-      <!-- Scrollable terminal output. script.js prints real text nodes in here. -->
-      <div class="output" id="output" role="log" aria-live="polite" aria-label="Terminal output" tabindex="0">
+      <div class="rail-fill" aria-hidden="true">
+        <i class="c-c"></i><i class="c-e grow"></i>
+      </div>
+      <div class="rail-foot" aria-hidden="true"><span>47&#8209;0921</span></div>
+    </div>
+
+    <main class="display" id="display">
+      <!-- Scrollable output. script.js prints real text nodes in here. -->
+      <div class="output" id="output" role="log" aria-live="polite" aria-label="Console output" tabindex="0">
 
         <!-- ============================================================
              NO-JS FALLBACK
@@ -72,7 +104,7 @@
             </p>
             <p class="quote">“Force without power falls to its own weight.”</p>
 
-            <h2>Links</h2>
+            <h2 class="heading">Links</h2>
             <ul>
               <li><a href="/barcona-systems/">Barcona Systems</a> (official site: <a href="https://barconasystems.de" target="_blank" rel="noopener noreferrer">barconasystems.de</a>)</li>
               <!-- TODO(Kenan): adjust the Flow wording (also in script.js) -->
@@ -81,7 +113,7 @@
               <li><a href="https://www.linkedin.com/in/kenan-busch-barcona-systems/" target="_blank" rel="noopener noreferrer">LinkedIn</a></li>
             </ul>
 
-            <h2>About</h2>
+            <h2 class="heading">About</h2>
             <p>
               I like turning ideas into working systems, especially where
               AI-driven automation, technical problem-solving, and practical
@@ -90,7 +122,7 @@
               and real-world use.
             </p>
 
-            <h2>Focus Areas</h2>
+            <h2 class="heading">Focus Areas</h2>
             <ul>
               <li>Software development</li>
               <li>Automation</li>
@@ -99,7 +131,7 @@
               <li>Research-driven projects</li>
             </ul>
 
-            <h2>Selected Work</h2>
+            <h2 class="heading">Selected Work</h2>
             <ul>
               <li><a href="/barcona-systems/">Barcona Systems</a>: software, automation, and engineering systems for logistics.</li>
               <li><a href="/flow/">Flow</a>: a free focus timer for getting into deep work.</li>
@@ -108,46 +140,46 @@
               <li>Technical Projects: personal experiments in automation, security systems, and applied technology. Write-ups to follow.</li>
             </ul>
 
-            <h2>Currently Exploring</h2>
+            <h2 class="heading">Currently Exploring</h2>
             <p>
               Sharpening my programming, building practical systems, and
               learning how research can be applied to real-world technical
               problems. I’m also digging deeper into physics.
             </p>
-
-            <p class="foot">Built with HTML, CSS, JS, and GitHub Pages.</p>
           </div>
         </noscript>
       </div>
-
-      <!-- Prompt line -->
-      <form class="prompt" id="prompt" autocomplete="off">
-        <label class="prompt-label" for="cmd">kenan@greatwave:~$</label>
-        <div class="prompt-field">
-          <input
-            id="cmd"
-            class="prompt-input"
-            type="text"
-            name="cmd"
-            maxlength="120"
-            autocomplete="off"
-            autocapitalize="none"
-            autocorrect="off"
-            spellcheck="false"
-            enterkeyhint="go"
-            aria-label="Terminal command input. Type help and press Enter for a list of commands."
-          />
-          <span class="cursor" id="cursor" aria-hidden="true"></span>
-        </div>
-      </form>
-
-      <footer class="statusbar">
-        <span>Built with HTML, CSS, JS, and GitHub Pages.</span>
-      </footer>
     </main>
+
+    <!-- Prompt line -->
+    <form class="prompt" id="prompt" autocomplete="off">
+      <label class="prompt-label" for="cmd">kenan@greatwave:~$</label>
+      <div class="prompt-field">
+        <input
+          id="cmd"
+          class="prompt-input"
+          type="text"
+          name="cmd"
+          maxlength="120"
+          autocomplete="off"
+          autocapitalize="none"
+          autocorrect="off"
+          spellcheck="false"
+          enterkeyhint="go"
+          aria-label="Command input. Type help and press Enter for a list of commands."
+        />
+        <span class="cursor" id="cursor" aria-hidden="true"></span>
+      </div>
+    </form>
+
+    <footer class="bar bar-foot">
+      <i class="seg s4 w-sm" aria-hidden="true"></i>
+      <span class="bar-text">Built with HTML, CSS, JS, and GitHub Pages</span>
+      <i class="seg s3 grow" aria-hidden="true"></i><i class="seg s1 w-xs end" aria-hidden="true"></i>
+    </footer>
   </div>
 
-  <!-- Mouse glow + trail (decorative; only activated on mouse devices) -->
+  <!-- Faint pointer trail (decorative; mouse devices only) -->
   <canvas class="trail" id="trail" aria-hidden="true"></canvas>
 </body>
 </html>

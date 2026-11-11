@@ -1,37 +1,58 @@
 /* ==========================================================================
-   GREATWAVE OS: retro CRT terminal home page
+   GREATWAVE OS 2.0: console-style home page
+   A modern "display system" frame (rounded elbows, coloured rail buttons,
+   segmented bars) around a terminal.
+
    Sections:
-     1. Theme tokens (colours, font, glow)   <- edit these to retheme
-     2. Page + terminal panel layout
-     3. CRT effects (scanlines, vignette, sweep)
-     4. Title bar, command bar, chips
-     5. Output area + printed content
-     6. Prompt line + block cursor
-     7. No-JS fallback
-     8. Overlays (mouse trail, matrix)
-     9. Small screens
-    10. Reduced motion
+     1. Theme tokens (palette, fonts, sizes)   <- edit these to retheme
+     2. Base
+     3. Frame layout (grid)
+     4. Elbows, bars, concave corners
+     5. Header (title + live readouts)
+     6. Rail command buttons
+     7. Display (output) + printed content
+     8. Prompt line + block cursor
+     9. No-JS fallback
+    10. Effects: power-on, red alert, trail, matrix
+    11. Phones
+    12. Reduced motion
    ========================================================================== */
 
 /* 1. Theme tokens --------------------------------------------------------- */
+@font-face {
+  /* Antonio, SIL Open Font License (assets/fonts/OFL.txt). Self-hosted. */
+  font-family: "Antonio";
+  src: url("assets/fonts/Antonio.ttf") format("truetype");
+  font-weight: 100 700;
+  font-style: normal;
+  font-display: swap;
+}
+
 :root {
-  --bg: #050a05;        /* page / screen black */
-  --panel: #060d07;     /* terminal panel */
-  --fg: #33ff66;        /* phosphor green, body text   (contrast ~14:1) */
-  --dim: #23b552;       /* secondary text              (contrast ~7:1)  */
-  --bright: #d2ffdc;    /* highlight tone              (contrast ~18:1) */
-  --line: #145c2c;      /* borders and rules */
-  --line-soft: #0d3a1c;
+  /* Palette: Great Wave blues + console ambers. All are light enough to
+     carry black text (contrast 7:1 or better). */
+  --p1: #ff9a3c; /* amber    */
+  --p2: #ffcc99; /* peach    */
+  --p3: #8cb4ff; /* sky      */
+  --p4: #c3a6ff; /* lavender */
+  --p5: #e8734a; /* rust     */
 
-  --glow: 0 0 0.45em rgba(51, 255, 102, 0.38);
-  --glow-bright: 0 0 0.5em rgba(170, 255, 195, 0.55);
+  --bg: #000;
+  --ink: #f1e9d8;      /* body text      (contrast ~17:1)  */
+  --ink-dim: #a39b8b;  /* secondary text (contrast ~7.6:1) */
+  --rule: #2a2723;     /* hairlines */
 
-  /* No web fonts are downloaded: installed IBM Plex Mono / VT323 are used if
-     present, otherwise the system monospace font. */
-  --font: "IBM Plex Mono", "VT323", ui-monospace, "Cascadia Mono", "SFMono-Regular",
-    Menlo, Consolas, "DejaVu Sans Mono", "Liberation Mono", monospace;
+  --ui: "Antonio", "Arial Narrow", "Roboto Condensed", "Helvetica Neue", sans-serif;
+  --mono: ui-monospace, "Cascadia Mono", "SFMono-Regular", Menlo, Consolas,
+    "Liberation Mono", monospace;
 
-  --pad: clamp(14px, 2.4vw, 28px);
+  /* Frame geometry */
+  --rail: clamp(150px, 15vw, 210px);   /* left column width */
+  --bar: 16px;                         /* horizontal bar thickness */
+  --fbar: 20px;                        /* footer bar (carries text) */
+  --corner: 26px;                      /* concave inner corner radius */
+  --gap: 5px;                          /* black gaps between blocks */
+  --inset: calc(var(--corner) + 18px); /* content distance from the rail */
 }
 
 *,
@@ -40,7 +61,7 @@
   box-sizing: border-box;
 }
 
-/* 2. Page + terminal panel ------------------------------------------------ */
+/* 2. Base ----------------------------------------------------------------- */
 html,
 body {
   height: 100%;
@@ -50,228 +71,388 @@ body {
 }
 
 body {
-  color: var(--fg);
-  font-family: var(--font);
-  font-size: clamp(15px, 0.45vw + 13px, 18px);
-  line-height: 1.55;
-  text-shadow: var(--glow);
+  color: var(--ink);
+  font-family: var(--mono);
+  font-size: clamp(14.5px, 0.35vw + 13px, 17px);
+  line-height: 1.6;
   -webkit-text-size-adjust: 100%;
   text-size-adjust: 100%;
+  -webkit-font-smoothing: antialiased;
 }
 
-.screen {
+button {
+  font: inherit;
+  color: inherit;
+}
+
+::selection {
+  background: var(--p2);
+  color: #000;
+}
+
+:focus-visible {
+  outline: 2px solid #fff;
+  outline-offset: 2px;
+}
+
+/* 3. Frame layout --------------------------------------------------------- */
+.console {
   position: fixed;
   top: 0;
   left: 0;
   right: 0;
   height: 100vh;
   height: 100dvh;
-  display: flex;
-  padding: clamp(10px, 2vw, 28px);
+  max-width: 1440px;
+  margin: 0 auto;
+  padding:
+    max(14px, env(safe-area-inset-top))
+    max(18px, env(safe-area-inset-right))
+    max(14px, env(safe-area-inset-bottom))
+    max(18px, env(safe-area-inset-left));
+  display: grid;
+  grid-template-columns: var(--rail) minmax(0, 1fr);
+  grid-template-rows: auto var(--bar) 10px var(--bar) minmax(0, 1fr) auto var(--fbar);
+  grid-template-areas:
+    "cap  head"
+    "cap  hbar"
+    ".    .   "
+    "rail tbar"
+    "rail display"
+    "rail prompt"
+    "rail fbar";
 }
 
 /* script.js keeps --app-h equal to the visible viewport height, so the
    prompt stays above the on-screen keyboard on phones. */
-.js .screen {
+.js .console {
   height: var(--app-h, 100dvh);
 }
 
-.term {
+.cap { grid-area: cap; }
+.head { grid-area: head; }
+.bar-head { grid-area: hbar; }
+.bar-top { grid-area: tbar; }
+.rail { grid-area: rail; }
+.display { grid-area: display; }
+.prompt { grid-area: prompt; }
+.bar-foot { grid-area: fbar; }
+
+/* 4. Elbows, bars, concave corners --------------------------------------- */
+.cap,
+.rail-elbow,
+.rail-foot {
   position: relative;
-  flex: 1;
-  min-width: 0;
-  width: 100%;
-  max-width: 1180px;
-  margin: 0 auto;
+  display: flex;
+  align-items: flex-end;
+  justify-content: flex-end;
+  padding: 0 12px 6px;
+  color: #000;
+  font-family: var(--ui);
+  font-size: 0.8rem;
+  font-weight: 500;
+  letter-spacing: 0.08em;
+}
+
+/* Upper frame: block curving into the header bar */
+.cap {
+  background: var(--p1);
+  border-bottom-left-radius: 72px 52px;
+  padding-bottom: calc(var(--bar) + 6px);
+}
+
+/* Lower frame: top elbow, buttons, filler, bottom elbow */
+.rail {
+  min-height: 0;
   display: flex;
   flex-direction: column;
-  overflow: hidden;
-  background: var(--panel);
-  border: 1px solid var(--line);
-  border-radius: 8px;
-  box-shadow:
-    0 0 0 1px #000,
-    0 0 60px rgba(51, 255, 102, 0.07);
+  gap: var(--gap);
 }
 
-/* 3. CRT effects ---------------------------------------------------------- */
-/* Scanlines + light vignette (static, sits above the text, ignores clicks) */
-.term::before {
-  content: "";
-  position: absolute;
-  inset: 0;
-  z-index: 5;
-  pointer-events: none;
-  background:
-    radial-gradient(ellipse at center, transparent 62%, rgba(0, 0, 0, 0.34) 100%),
-    repeating-linear-gradient(to bottom, transparent 0 2px, rgba(0, 0, 0, 0.16) 2px 3px);
+.rail-elbow {
+  flex: none;
+  height: 76px;
+  background: var(--p2);
+  border-top-left-radius: 72px 52px;
 }
 
-/* Slow, faint refresh band drifting down the screen */
-.term::after {
+.rail-foot {
+  flex: none;
+  height: 56px;
+  background: var(--p4);
+  border-bottom-left-radius: 72px 44px;
+}
+
+.rail-fill {
+  flex: 1 1 0;
+  min-height: 0;
+  display: flex;
+  flex-direction: column;
+  gap: var(--gap);
+}
+
+.rail-fill i {
+  flex: none;
+  height: 28px;
+  background: var(--c);
+}
+
+.rail-fill i.grow {
+  flex: 1 1 0;
+  min-height: 0;
+  height: auto;
+}
+
+/* Segmented bars */
+.bar {
+  position: relative;
+  display: flex;
+  align-items: stretch;
+  gap: var(--gap);
+  min-width: 0;
+}
+
+.seg {
+  display: block;
+  flex: none;
+  width: 22%;
+  background: var(--c);
+}
+
+.seg.w-xs { width: 4%; }
+.seg.w-sm { width: 9%; }
+.seg.w-md { width: 15%; }
+.seg.grow { flex: 1 1 0; width: auto; }
+.seg.end { border-radius: 0 999px 999px 0; }
+
+/* Colour classes, shared by segments, buttons and rail blocks */
+.s1, .c-a { --c: var(--p1); }
+.s2, .c-c { --c: var(--p2); }
+.s3, .c-b { --c: var(--p3); }
+.s4, .c-d { --c: var(--p4); }
+.s5, .c-e { --c: var(--p5); }
+
+/* Concave inner corners where a bar meets its elbow: a square in the
+   elbow colour with a quarter circle cut out. */
+.bar-head::before,
+.bar-top::before,
+.bar-foot::before {
   content: "";
   position: absolute;
   left: 0;
-  right: 0;
-  top: 0;
-  height: 22%;
-  z-index: 5;
+  width: var(--corner);
+  height: var(--corner);
+  z-index: 4;
   pointer-events: none;
-  background: linear-gradient(to bottom, transparent, rgba(51, 255, 102, 0.035), transparent);
-  transform: translateY(-110%);
-  animation: sweep 9s linear infinite;
 }
 
-@keyframes sweep {
-  to {
-    transform: translateY(560%);
-  }
+.bar-head::before {
+  bottom: 100%;
+  background: radial-gradient(circle var(--corner) at 100% 0, transparent calc(100% - 0.5px), var(--p1) 100%);
 }
 
-/* 4. Title bar, command bar, chips ---------------------------------------- */
-.titlebar {
-  display: flex;
-  align-items: baseline;
-  justify-content: space-between;
-  gap: 12px;
-  padding: 8px var(--pad);
-  border-bottom: 1px solid var(--line);
-  color: var(--dim);
-  font-size: 0.82em;
-  letter-spacing: 0.06em;
+.bar-top::before {
+  top: 100%;
+  background: radial-gradient(circle var(--corner) at 100% 100%, transparent calc(100% - 0.5px), var(--p2) 100%);
+}
+
+.bar-foot::before {
+  bottom: 100%;
+  background: radial-gradient(circle var(--corner) at 100% 0, transparent calc(100% - 0.5px), var(--p4) 100%);
+}
+
+.bar-text {
+  flex: none;
+  align-self: center;
+  padding: 0 10px;
+  color: var(--ink-dim);
+  font-family: var(--ui);
+  font-size: 0.78rem;
+  line-height: 1;
+  letter-spacing: 0.14em;
   text-transform: uppercase;
-}
-
-.titlebar-name {
-  margin: 0;
-  font: inherit;
-  color: var(--fg);
-}
-
-.titlebar-sys {
   white-space: nowrap;
 }
 
-.cmdbar {
+/* 5. Header --------------------------------------------------------------- */
+.head {
+  min-width: 0;
   display: flex;
-  flex-wrap: wrap;
-  align-items: center;
+  align-items: flex-end;
+  justify-content: space-between;
+  gap: 24px;
+  padding: 4px 4px 12px var(--inset);
+}
+
+.title {
+  margin: 0;
+  display: flex;
+  flex-direction: column;
+  align-items: flex-end;
+  font-family: var(--ui);
+  font-weight: 500;
+  text-transform: uppercase;
+  line-height: 1;
+  text-align: right;
+}
+
+.title-name {
+  color: var(--p1);
+  font-size: clamp(3rem, 6.5vw, 5.6rem);
+  font-weight: 600;
+  letter-spacing: 0.02em;
+}
+
+.title-sub {
+  margin-top: 0.35em;
+  margin-right: -0.28em; /* optical: cancel trailing letter-spacing */
+  color: var(--p3);
+  font-size: clamp(0.85rem, 1.1vw, 1.05rem);
+  letter-spacing: 0.28em;
+}
+
+/* Live readouts: real date, local time, session time, commands run */
+.readout {
+  margin: 0;
+  display: grid;
+  grid-template-columns: repeat(4, auto);
+  gap: 4px 28px;
+  font-family: var(--ui);
+  text-transform: uppercase;
+  line-height: 1.15;
+}
+
+.readout dt {
+  color: var(--ink-dim);
+  font-size: 0.72rem;
+  letter-spacing: 0.16em;
+}
+
+.readout dd {
+  margin: 0;
+  color: var(--p2);
+  font-size: 1.15rem;
+  font-weight: 500;
+  letter-spacing: 0.06em;
+  font-variant-numeric: tabular-nums;
+}
+
+.readout div:nth-child(2) dd { color: var(--p1); }
+.readout div:nth-child(3) dd { color: var(--p3); }
+.readout div:nth-child(4) dd { color: var(--p4); }
+
+/* 6. Rail command buttons ------------------------------------------------- */
+.cmds {
+  flex: none;
+  display: flex;
+  flex-direction: column;
+  gap: var(--gap);
+}
+
+.btn {
+  display: flex;
+  align-items: flex-end;
+  justify-content: space-between;
   gap: 8px;
-  padding: 10px var(--pad);
-  border-bottom: 1px solid var(--line);
-}
-
-.cmdbar-label {
-  color: var(--dim);
-  margin-right: 2px;
-}
-
-button {
-  font: inherit;
-  color: inherit;
-  text-shadow: inherit;
-}
-
-.chip {
-  min-height: 36px;
-  padding: 4px 12px;
-  background: transparent;
-  border: 1px solid var(--line);
-  border-radius: 3px;
-  color: var(--fg);
+  height: clamp(38px, 6.4vh, 58px);
+  padding: 0 12px 6px;
+  border: 0;
+  border-radius: 0;
+  background: var(--c);
+  color: #000;
+  font-family: var(--ui);
+  font-size: 1.1rem;
+  font-weight: 500;
+  letter-spacing: 0.1em;
+  text-transform: uppercase;
   cursor: pointer;
   -webkit-tap-highlight-color: transparent;
-  transition: background-color 0.12s, color 0.12s, border-color 0.12s;
+  transition: background-color 0.18s, filter 0.18s;
 }
 
-.chip::before {
-  content: "[";
-  color: var(--dim);
-  margin-right: 0.35em;
+.btn-num {
+  align-self: flex-start;
+  padding-top: 5px;
+  font-size: 0.72rem;
+  letter-spacing: 0.08em;
+  opacity: 0.7;
 }
 
-.chip::after {
-  content: "]";
-  color: var(--dim);
-  margin-left: 0.35em;
-}
-
-.chip:active {
-  background: var(--fg);
-  border-color: var(--fg);
-  color: var(--bg);
-  text-shadow: none;
-}
-
-.chip:active::before,
-.chip:active::after {
-  color: var(--bg);
-}
-
-/* Hover styles only where a real pointer hovers (otherwise they stick
-   after a tap on touch screens). */
 @media (hover: hover) {
-  .chip:hover {
-    background: var(--fg);
-    border-color: var(--fg);
-    color: var(--bg);
-    text-shadow: none;
-  }
-
-  .chip:hover::before,
-  .chip:hover::after {
-    color: var(--bg);
+  .btn:hover {
+    filter: brightness(1.12) saturate(1.1);
   }
 }
 
-/* Keyboard focus: the same bright ring on every interactive element */
-:focus-visible {
-  outline: 2px solid var(--bright);
+.btn:active {
+  background: #fff;
+}
+
+/* The command that produced the most recent output */
+.btn.is-current {
+  background: var(--ink);
+}
+
+.btn.is-current .btn-num::after {
+  content: " \25B8";
+}
+
+.btn:focus-visible {
+  position: relative;
+  z-index: 1;
+  outline: 2px solid #fff;
   outline-offset: 2px;
 }
 
-/* 5. Output area + printed content ---------------------------------------- */
-.output {
-  position: relative; /* offsetParent for scroll-to-command */
-  flex: 1;
+/* 7. Display + printed content ------------------------------------------- */
+.display {
+  position: relative;
   min-height: 0;
+  min-width: 0;
+}
+
+/* The one retro touch left: very faint scanlines on the display only */
+.display::after {
+  content: "";
+  position: absolute;
+  inset: 0;
+  z-index: 3;
+  pointer-events: none;
+  background: repeating-linear-gradient(to bottom, transparent 0 2px, rgba(255, 255, 255, 0.018) 2px 3px);
+}
+
+.output {
+  height: 100%;
   overflow-y: auto;
   overflow-x: hidden;
   overscroll-behavior: contain;
-  padding: var(--pad);
+  padding: calc(var(--corner) + 8px) 8px 18px var(--inset);
   scrollbar-width: thin;
-  scrollbar-color: var(--line) transparent;
+  scrollbar-color: #3a3631 transparent;
   overflow-wrap: anywhere;
 }
 
 .output:focus-visible {
-  outline-offset: -3px;
-}
-
-.output::selection,
-.output *::selection,
-.prompt-input::selection {
-  background: var(--fg);
-  color: var(--bg);
-  text-shadow: none;
+  outline-offset: -2px;
 }
 
 /* One block per command (echo line + its output) */
 .block {
-  margin: 0 0 1.1em;
-  max-width: 78ch;
+  margin: 0 0 1.4em;
+  max-width: 76ch;
 }
 
 .block > * {
   margin: 0;
-  min-height: 1.55em; /* keeps empty lines as spacers */
-  animation: reveal 0.16s both;
-  animation-delay: calc(var(--i, 0) * 20ms);
+  min-height: 1.6em; /* keeps empty lines as spacers */
+  animation: reveal 0.22s ease-out both;
+  animation-delay: calc(var(--i, 0) * 22ms);
 }
 
 @keyframes reveal {
   from {
     opacity: 0;
+    transform: translateY(3px);
   }
 }
 
@@ -279,86 +460,119 @@ button {
   white-space: pre-wrap;
 }
 
+.echo {
+  margin-bottom: 0.35em !important;
+}
+
 .echo .ps1 {
-  color: var(--dim);
+  color: var(--ink-dim);
 }
 
 .echo .typed {
-  color: var(--bright);
-  text-shadow: var(--glow-bright);
+  color: var(--p2);
 }
 
 .heading {
-  margin-top: 0.2em;
-  color: var(--bright);
-  text-shadow: var(--glow-bright);
-  font-size: 1em;
-  font-weight: 700;
-  letter-spacing: 0.08em;
+  display: flex;
+  align-items: center;
+  gap: 12px;
+  margin: 0.25em 0 0.45em !important;
+  color: var(--p3);
+  font-family: var(--ui);
+  font-size: 1.4rem;
+  font-weight: 500;
+  line-height: 1.3;
+  letter-spacing: 0.1em;
   text-transform: uppercase;
 }
 
 .heading::before {
-  content: "== ";
-  color: var(--dim);
-}
-
-.heading::after {
-  content: " ==";
-  color: var(--dim);
+  content: "";
+  flex: none;
+  width: 34px;
+  height: 0.62em;
+  border-radius: 999px 0 0 999px;
+  background: var(--p1);
 }
 
 .dim {
-  color: var(--dim);
+  color: var(--ink-dim);
 }
 
 .alert {
-  color: var(--bright);
-  text-shadow: var(--glow-bright);
+  color: var(--p1);
 }
 
 .bullet {
-  padding-left: 2ch;
-  text-indent: -2ch;
+  position: relative;
+  padding-left: 2.2ch;
 }
 
 .bullet::before {
-  content: "> ";
-  color: var(--dim);
+  content: "";
+  position: absolute;
+  left: 0;
+  top: 0.62em;
+  width: 1.1ch;
+  height: 0.38em;
+  border-radius: 999px;
+  background: var(--p4);
 }
 
 .art {
   white-space: pre;
   overflow: hidden;
   line-height: 1.25;
-  color: var(--fg);
+  color: var(--p3);
+  font-family: var(--mono);
 }
 
-/* Two-column rows (help listing): command on the left, text on the right */
+/* help listing: command left, description right */
 .row {
   display: grid;
   grid-template-columns: 11ch 1fr;
-  column-gap: 1ch;
+  column-gap: 1.5ch;
   align-items: baseline;
 }
 
-/* `ls` listing */
+/* ls listing */
 .files {
   display: flex;
   flex-wrap: wrap;
-  gap: 0.2em 2.5ch;
+  gap: 0.2em 3ch;
 }
 
-/* Project entries */
+/* Project entries: a coloured tab on the left */
 .entry {
-  padding-left: 2ch;
-  border-left: 2px solid var(--line);
-  margin-bottom: 0.9em !important;
+  position: relative;
+  padding: 2px 0 2px 2.4ch;
+  margin-bottom: 1em !important;
 }
+
+.entry::before {
+  content: "";
+  position: absolute;
+  left: 0;
+  top: 4px;
+  bottom: 4px;
+  width: 8px;
+  border-radius: 999px 0 0 999px;
+  background: var(--c, var(--p3));
+}
+
+.entry:nth-child(4n + 2) { --c: var(--p1); }
+.entry:nth-child(4n + 3) { --c: var(--p3); }
+.entry:nth-child(4n + 4) { --c: var(--p4); }
+.entry:nth-child(4n + 5) { --c: var(--p5); }
 
 .entry-title {
   display: block;
-  font-weight: 700;
+  color: var(--p2);
+  font-family: var(--ui);
+  font-size: 1.2rem;
+  font-weight: 500;
+  letter-spacing: 0.08em;
+  text-transform: uppercase;
 }
 
 .entry-desc,
@@ -367,18 +581,22 @@ button {
 }
 
 .entry-extra {
-  color: var(--dim);
+  color: var(--ink-dim);
 }
 
 /* Links and clickable commands inside the output */
 .output a,
 .cmd-link {
-  color: var(--bright);
-  text-shadow: var(--glow-bright);
+  color: var(--p3);
   text-decoration: underline;
   text-decoration-thickness: 1px;
-  text-underline-offset: 0.2em;
+  text-underline-offset: 0.22em;
   border-radius: 2px;
+  transition: background-color 0.15s, color 0.15s;
+}
+
+.entry-title a {
+  color: var(--p2);
 }
 
 .cmd-link {
@@ -387,6 +605,8 @@ button {
   margin: 0;
   background: none;
   border: 0;
+  color: var(--p2);
+  font-family: inherit;
   cursor: pointer;
   text-decoration-style: dotted;
   -webkit-tap-highlight-color: transparent;
@@ -394,79 +614,104 @@ button {
 
 .output a:active,
 .cmd-link:active {
-  background: var(--bright);
-  color: var(--bg);
-  text-shadow: none;
+  background: var(--p2);
+  color: #000;
   text-decoration: none;
 }
 
 @media (hover: hover) {
   .output a:hover,
   .cmd-link:hover {
-    background: var(--bright);
-    color: var(--bg);
-    text-shadow: none;
+    background: var(--p2);
+    color: #000;
     text-decoration: none;
   }
 }
 
-/* Greeting banner */
+/* Greeting */
 .headline {
   margin: 0;
-  color: var(--bright);
-  font-size: clamp(1.75rem, 5.2vw, 3.1rem);
-  font-weight: 700;
-  line-height: 1.15;
-  letter-spacing: -0.01em;
-  text-shadow:
-    0 0 0.35em rgba(170, 255, 195, 0.5),
-    0 0 1.1em rgba(51, 255, 102, 0.3);
+  color: var(--ink);
+  font-family: var(--ui);
+  font-size: clamp(2.4rem, 5.6vw, 4.4rem);
+  font-weight: 600;
+  line-height: 1.08;
+  letter-spacing: 0.01em;
 }
 
 .tagline {
-  margin: 0.5em 0 0.9em;
-  color: var(--fg);
-  letter-spacing: 0.14em;
+  margin: 0.45em 0 1em;
+  color: var(--p1);
+  font-family: var(--ui);
+  font-size: 1.05rem;
+  letter-spacing: 0.3em;
   text-transform: uppercase;
 }
 
 .quote {
-  padding-left: 2ch;
-  border-left: 2px solid var(--line);
-  color: var(--dim);
+  position: relative;
+  padding-left: 2.4ch;
+  color: var(--ink-dim);
   font-style: italic;
+}
+
+.quote::before {
+  content: "";
+  position: absolute;
+  left: 0;
+  top: 0.25em;
+  bottom: 0.25em;
+  width: 3px;
+  border-radius: 2px;
+  background: var(--p4);
+}
+
+/* Boot lines */
+.boot {
+  color: var(--ink-dim);
+  font-family: var(--ui);
+  font-size: 0.95rem;
+  letter-spacing: 0.14em;
+  text-transform: uppercase;
 }
 
 /* Caret shown at the end of a line while it is being typed out */
 .typing::after {
   content: "";
   display: inline-block;
-  width: 0.6em;
-  height: 1em;
+  width: 0.55em;
+  height: 0.9em;
   margin-left: 0.1em;
-  vertical-align: -0.12em;
+  vertical-align: -0.08em;
   background: currentColor;
 }
 
-/* 6. Prompt line + block cursor ------------------------------------------- */
+/* 8. Prompt line + block cursor ------------------------------------------- */
 .prompt {
   display: flex;
   align-items: center;
   gap: 1ch;
-  padding: 10px var(--pad);
-  border-top: 1px solid var(--line);
+  min-width: 0;
+  margin: 0 0 8px var(--inset);
+  padding: 10px 2px 2px;
+  border-top: 1px solid var(--rule);
+  transition: border-color 0.2s;
 }
 
 .prompt:focus-within {
-  border-top-color: var(--fg);
-  background: rgba(51, 255, 102, 0.035);
+  border-top-color: var(--p1);
 }
 
 .prompt-label {
   flex: none;
-  color: var(--dim);
+  color: var(--ink-dim);
   white-space: nowrap;
   cursor: text;
+  transition: color 0.2s;
+}
+
+.prompt:focus-within .prompt-label {
+  color: var(--p1);
 }
 
 .prompt-field {
@@ -487,29 +732,27 @@ button {
   border: 0;
   outline: 0;
   border-radius: 0;
-  color: var(--bright);
+  color: var(--p2);
   caret-color: transparent; /* replaced by the block cursor below */
   font: inherit;
-  text-shadow: var(--glow-bright);
 }
 
 /* Block cursor: script.js moves it with --x (in px) */
 .cursor {
   position: absolute;
-  top: 0.1em;
+  top: 0.12em;
   left: 0;
   width: 1ch;
-  height: 1.3em;
+  height: 1.28em;
   pointer-events: none;
   transform: translateX(var(--x, 0px));
-  border: 1px solid var(--dim); /* hollow while the input is not focused */
+  border: 1px solid var(--ink-dim); /* hollow while the input is not focused */
 }
 
 .prompt-input:focus ~ .cursor {
-  border-color: var(--fg);
-  background: var(--fg);
-  box-shadow: 0 0 0.6em rgba(51, 255, 102, 0.6);
-  mix-blend-mode: difference; /* keeps the character under the cursor readable */
+  border-color: var(--p1);
+  background: var(--p1);
+  mix-blend-mode: difference; /* keeps the character under it readable */
   animation: blink 1.06s steps(1) infinite;
 }
 
@@ -523,54 +766,115 @@ button {
   }
 }
 
-.statusbar {
-  padding: 6px var(--pad) 8px;
-  border-top: 1px solid var(--line-soft);
-  color: var(--dim);
-  font-size: 0.78em;
-  letter-spacing: 0.04em;
-}
-
-/* 7. No-JS fallback ------------------------------------------------------- */
-.no-js .cmdbar,
+/* 9. No-JS fallback ------------------------------------------------------- */
+.no-js .cmds,
 .no-js .prompt,
-.no-js .trail {
+.no-js .trail,
+.no-js .readout {
   display: none;
 }
 
 .plain {
-  max-width: 78ch;
+  max-width: 76ch;
 }
 
-.plain h2 {
-  margin: 1.6em 0 0.5em;
-  color: var(--bright);
-  font-size: 1em;
-  letter-spacing: 0.08em;
-  text-transform: uppercase;
+.plain .heading {
+  margin-top: 1.6em !important;
 }
 
 .plain p {
-  margin: 0 0 0.8em;
+  margin: 0 0 0.9em;
 }
 
 .plain ul {
   margin: 0;
-  padding-left: 2ch;
-  list-style: "> ";
+  padding-left: 2.2ch;
 }
 
 .plain li {
   margin-bottom: 0.35em;
 }
 
-.plain .foot {
-  margin-top: 2em;
-  color: var(--dim);
+/* 10. Effects ------------------------------------------------------------- */
+/* Power-on sequence (script.js adds .powering during the first boot) */
+.powering .seg,
+.powering .rail-fill i {
+  animation: seg-in 0.5s cubic-bezier(0.2, 0.7, 0.2, 1) both;
+  animation-delay: calc(var(--n, 0) * 70ms + 120ms);
+  transform-origin: left center;
 }
 
-/* 8. Overlays ------------------------------------------------------------- */
-/* Mouse glow + trail canvas (activated by script.js on mouse devices only) */
+.powering .btn,
+.powering .rail-elbow,
+.powering .rail-foot,
+.powering .cap {
+  animation: block-in 0.4s ease-out both;
+  animation-delay: calc(var(--n, 0) * 55ms);
+}
+
+.powering .head > *,
+.powering .prompt {
+  animation: fade-in 0.6s ease-out both;
+  animation-delay: 0.5s;
+}
+
+.seg:nth-child(2), .btn:nth-child(2) { --n: 2; }
+.seg:nth-child(3), .btn:nth-child(3) { --n: 3; }
+.seg:nth-child(4), .btn:nth-child(4) { --n: 4; }
+.seg:nth-child(5), .btn:nth-child(5) { --n: 5; }
+.btn:nth-child(6) { --n: 6; }
+.btn:nth-child(7) { --n: 7; }
+.rail-fill i:nth-child(1) { --n: 8; }
+.rail-fill i:nth-child(2),
+.rail-foot { --n: 9; }
+
+@keyframes seg-in {
+  from {
+    opacity: 0;
+    transform: scaleX(0.15);
+  }
+}
+
+@keyframes block-in {
+  from {
+    opacity: 0;
+  }
+  40% {
+    opacity: 1;
+    filter: brightness(1.6);
+  }
+}
+
+@keyframes fade-in {
+  from {
+    opacity: 0;
+  }
+}
+
+/* `red alert` easter egg: the palette shifts to red for a few seconds */
+.red-alert {
+  --p1: #ff5a4a;
+  --p2: #ff8f80;
+  --p3: #ff6b5a;
+  --p4: #ffa89c;
+  --p5: #e0473a;
+}
+
+.red-alert .seg,
+.red-alert .rail-elbow,
+.red-alert .cap,
+.red-alert .rail-foot,
+.red-alert .rail-fill i {
+  animation: alert-pulse 0.9s ease-in-out infinite alternate;
+}
+
+@keyframes alert-pulse {
+  to {
+    opacity: 0.35;
+  }
+}
+
+/* Faint pointer trail (script.js enables it on mouse devices only) */
 .trail {
   position: fixed;
   inset: 0;
@@ -578,7 +882,6 @@ button {
   height: 100%;
   z-index: 20;
   pointer-events: none;
-  mix-blend-mode: screen;
   display: none;
 }
 
@@ -592,7 +895,7 @@ button {
   inset: 0;
   width: 100%;
   height: 100%;
-  z-index: 4; /* below the scanlines, above the text */
+  z-index: 2;
   background: var(--bg);
   cursor: pointer;
   transition: opacity 0.4s;
@@ -602,77 +905,183 @@ button {
   opacity: 0;
 }
 
-/* 9. Small screens -------------------------------------------------------- */
-@media (max-width: 640px) {
-  .screen {
+/* 11. Phones -------------------------------------------------------------- */
+@media (max-width: 760px) {
+  :root {
+    --rail: 22px;
+    --bar: 10px;
+    --fbar: 18px;
+    --corner: 16px;
+    --inset: calc(var(--corner) + 10px);
+  }
+
+  .console {
+    padding:
+      max(10px, env(safe-area-inset-top))
+      max(10px, env(safe-area-inset-right))
+      max(8px, env(safe-area-inset-bottom))
+      max(10px, env(safe-area-inset-left));
+    grid-template-rows: auto var(--bar) 6px var(--bar) auto minmax(0, 1fr) auto var(--fbar);
+    grid-template-areas:
+      "cap  head"
+      "cap  hbar"
+      ".    .   "
+      "rail tbar"
+      "rail cmds"
+      "rail display"
+      "rail prompt"
+      "rail fbar";
+  }
+
+  /* The rail becomes a thin coloured strip; its buttons move beside it */
+  .rail {
+    display: contents;
+  }
+
+  .rail-elbow {
+    grid-area: rail;
+    height: auto;
     padding: 0;
+    border-radius: 22px 0 0 22px / 26px 0 0 26px;
+    font-size: 0;
   }
 
-  .term {
-    border-radius: 0;
-    border-width: 0;
-  }
-
-  .titlebar-sys {
+  .rail-fill,
+  .rail-foot {
     display: none;
   }
 
-  .cmdbar {
+  /* the footer bar now joins the peach rail strip */
+  .bar-foot::before {
+    background: radial-gradient(circle var(--corner) at 100% 0, transparent calc(100% - 0.5px), var(--p2) 100%);
+  }
+
+  .bar-foot .seg:first-child {
+    --c: var(--p2);
+  }
+
+  .tagline {
+    font-size: 0.95rem;
+    letter-spacing: 0.16em;
+  }
+
+  .cap {
+    padding: 0;
+    border-bottom-left-radius: 22px 26px;
+    font-size: 0;
+  }
+
+  .head {
+    flex-direction: column-reverse;
+    align-items: stretch;
     gap: 6px;
-    padding-top: 8px;
-    padding-bottom: 8px;
+    padding: 0 0 8px var(--inset);
   }
 
-  .cmdbar-label {
+  .title-name {
+    font-size: 2.6rem;
+  }
+
+  .title-sub {
+    margin-right: -0.22em;
+    font-size: 0.75rem;
+    letter-spacing: 0.22em;
+  }
+
+  .readout {
+    grid-template-columns: repeat(2, auto);
+    justify-content: end;
+    gap: 2px 20px;
+  }
+
+  .readout dd {
+    font-size: 0.95rem;
+  }
+
+  .ro-wide {
     display: none;
   }
 
-  .chip {
-    min-height: 40px; /* comfortable tap target */
-    padding: 4px 9px;
+  .cmds {
+    grid-area: cmds;
+    display: grid;
+    grid-template-columns: repeat(4, minmax(0, 1fr));
+    gap: 6px;
+    padding: calc(var(--corner) - 4px) 0 8px var(--inset);
   }
 
-  .statusbar {
-    display: none; /* saves a row; the same line is printed in `help` */
+  .btn {
+    height: 40px;
+    justify-content: center;
+    align-items: center;
+    padding: 0 6px;
+    border-radius: 999px;
+    font-size: 1rem;
+    letter-spacing: 0.06em;
+  }
+
+  .btn-num {
+    display: none;
+  }
+
+  .output {
+    padding: 8px 2px 14px var(--inset);
+  }
+
+  .heading {
+    font-size: 1.2rem;
+  }
+
+  .heading::before {
+    width: 22px;
   }
 
   .row {
     grid-template-columns: 9ch 1fr;
   }
+
+  .bar-text {
+    font-size: 0.66rem;
+    letter-spacing: 0.1em;
+  }
 }
 
-/* Very short viewports (phone keyboard open, landscape): drop the title bar */
-@media (max-height: 420px) {
-  .titlebar,
-  .statusbar {
+/* Phone with the keyboard open: hide the header, one swipeable button row */
+@media (max-width: 760px) and (max-height: 480px) {
+  .console {
+    grid-template-rows: 0 0 0 var(--bar) auto minmax(0, 1fr) auto var(--fbar);
+  }
+
+  .cap,
+  .head,
+  .bar-head {
     display: none;
   }
 
-  /* one swipeable row of chips, so the output keeps most of the space */
-  .cmdbar {
-    flex-wrap: nowrap;
+  .cmds {
+    display: flex;
+    flex-direction: row;
     overflow-x: auto;
     scrollbar-width: none;
+    padding-bottom: 6px;
   }
 
-  .chip {
+  .btn {
     flex: none;
+    height: 34px;
+    padding: 0 14px;
   }
 }
 
-/* 10. Reduced motion ------------------------------------------------------ */
-/* script.js also checks this setting: no typing animation, no mouse trail,
-   no matrix animation, instant output. */
+/* 12. Reduced motion ------------------------------------------------------ */
+/* script.js also checks this setting: no typing animation, no trail,
+   no matrix animation, no power-on, instant output. */
 @media (prefers-reduced-motion: reduce) {
   *,
   *::before,
   *::after {
     animation: none !important;
     transition: none !important;
-  }
-
-  .term::after {
-    display: none; /* no moving refresh band */
   }
 
   .trail {
