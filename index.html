@@ -28,8 +28,8 @@
        section is shown one after another and the menu links scroll to them. -->
   <script>document.documentElement.className = "js";</script>
 
-  <link rel="stylesheet" href="style.css" />
-  <script src="script.js" defer></script>
+  <link rel="stylesheet" href="style.css?v=5" />
+  <script src="script.js?v=5" defer></script>
 </head>
 
 <body>
@@ -37,41 +37,20 @@
        Frame. Grid areas are set in style.css (section 3).
        Everything marked aria-hidden="true" is decoration.
 
-       EDITING THE TEXT: all content lives in this file, in the <section>
-       elements inside <main> below. One section per menu entry.
+       EDITING THE TEXT: all content is plain HTML in the <section> elements
+       inside <main> below, one section per menu entry.
        ====================================================================== -->
   <div class="frame" id="frame">
 
-    <!-- Upper frame: header ------------------------------------------------ -->
-    <div class="cap" aria-hidden="true"><span>TGW 21</span></div>
-
-    <header class="head">
-      <div class="head-info" aria-hidden="true">
-        <dl class="readout">
-          <div><dt>Date</dt><dd id="ro-date">----.--.--</dd></div>
-          <div><dt>Local</dt><dd id="ro-time">--:--:--</dd></div>
-          <div class="ro-extra"><dt>Session</dt><dd id="ro-up">00:00:00</dd></div>
-          <div class="ro-extra"><dt>Panel</dt><dd id="ro-panel">01</dd></div>
-        </dl>
-        <div class="ticks" id="head-ticks"></div>
-      </div>
-      <h1 class="title">
-        <span class="title-name">Kenan</span>
-        <span class="title-sub">Code &amp; Circuits Guy</span>
-      </h1>
-    </header>
-
-    <div class="bar bar-head" aria-hidden="true">
-      <i class="seg g2"></i><i class="seg c1 w-xs"></i><i class="seg g3 grow"></i><i class="seg o1 w-xxs"></i><i class="seg g1 w-sm"></i><i class="seg g2 w-xs end"></i>
-    </div>
-
-    <!-- Lower frame: sidebar + display ------------------------------------ -->
+    <!-- Outer bracket + segmented top/bottom bars -->
+    <div class="bracket" aria-hidden="true"></div>
     <div class="bar bar-top" aria-hidden="true">
-      <i class="seg g1"></i><i class="seg g3 w-sm"></i><i class="seg c2 w-xs"></i><i class="seg g2 grow"></i><i class="seg g3 w-md end"></i>
+      <i class="seg f2 w-sm"></i><i class="seg f1 grow"></i><i class="seg c w-xs"></i><i class="seg f2 w-md"></i><i class="seg s w-xxs"></i><i class="seg f1 w-sm end"></i>
     </div>
 
-    <div class="side">
-      <div class="elbow" aria-hidden="true"><span>NAV 02</span></div>
+    <!-- Sidebar: inner bracket with the menu chips -->
+    <aside class="side">
+      <div class="side-cap side-cap-top" aria-hidden="true"><span>GW&#8209;21</span></div>
 
       <nav class="nav" aria-label="Site">
         <!-- Panels inside this page -->
@@ -87,18 +66,24 @@
         <a class="nav-btn nav-out" href="https://github.com/TheGreatWave21" target="_blank" rel="noopener noreferrer"><span class="nav-num" aria-hidden="true">07</span>GitHub<span class="sr-only"> (opens in a new tab)</span></a>
       </nav>
 
-      <div class="side-fill" aria-hidden="true">
-        <i class="g3"></i><i class="g1 grow"></i><i class="c1"></i>
+      <div class="side-rail" aria-hidden="true">
+        <i></i><i class="s"></i><i></i><i class="c"></i><i></i><i class="w"></i><i class="s"></i><i></i><i class="c"></i><i class="w"></i><i></i><i class="s"></i><i></i><i class="c"></i><i></i><i class="w"></i>
       </div>
-      <div class="foot-elbow" aria-hidden="true"><span>47 09</span></div>
-    </div>
+      <div class="side-cap side-cap-bot" aria-hidden="true"><span>47&#8209;09</span></div>
+    </aside>
 
+    <!-- Display -->
     <main class="display" id="display">
+      <header class="display-head">
+        <span class="panel-tag" id="panel-tag" aria-hidden="true">01 · Home</span>
+        <span class="head-rule" aria-hidden="true"><i></i><i></i><i></i></span>
+        <h1 class="title">Kenan <span class="title-sub">· Code &amp; Circuits Guy</span></h1>
+      </header>
+
       <div class="panels" id="panels">
 
         <!-- ==== HOME ====================================================== -->
         <section class="panel panel-home" id="home" aria-labelledby="home-h" tabindex="-1">
-          <p class="kicker" aria-hidden="true">01 · Home</p>
           <div class="home-grid">
             <div class="home-main">
               <h2 class="hello" id="home-h">Heya, I’m Kenan.</h2>
@@ -127,7 +112,6 @@
 
         <!-- ==== ABOUT ===================================================== -->
         <section class="panel" id="about" aria-labelledby="about-h" tabindex="-1">
-          <p class="kicker" aria-hidden="true">02 · About</p>
           <h2 class="panel-title" id="about-h">About</h2>
           <div class="about-grid">
             <div class="box">
@@ -167,7 +151,6 @@
 
         <!-- ==== PROJECTS ================================================== -->
         <section class="panel" id="projects" aria-labelledby="projects-h" tabindex="-1">
-          <p class="kicker" aria-hidden="true">03 · Projects</p>
           <h2 class="panel-title" id="projects-h">Selected work</h2>
           <ul class="cards">
             <li class="card">
@@ -209,7 +192,6 @@
 
         <!-- ==== CONTACT =================================================== -->
         <section class="panel" id="contact" aria-labelledby="contact-h" tabindex="-1">
-          <p class="kicker" aria-hidden="true">04 · Contact</p>
           <h2 class="panel-title" id="contact-h">Contact</h2>
           <p class="lead">The best ways to reach me or see what I’m working on.</p>
           <ul class="contact">
@@ -231,14 +213,33 @@
         </section>
       </div>
 
+      <!-- Decorative progress rows along the bottom of the display -->
+      <div class="display-foot" aria-hidden="true">
+        <span class="foot-tag">SYS&#8209;A</span><span class="track"><i style="--w: 62%"></i></span>
+        <span class="foot-tag">SYS&#8209;B</span><span class="track track-s"><i style="--w: 38%"></i></span>
+        <span class="foot-tag">NET</span><span class="track"><i style="--w: 81%"></i></span>
+        <span class="foot-tag">PWR</span><span class="track"><i style="--w: 54%"></i></span>
+      </div>
+
       <!-- Small message box used by the hidden easter eggs -->
       <div class="toast" id="toast" role="status" aria-live="polite"></div>
     </main>
 
-    <footer class="bar bar-foot">
-      <i class="seg g3 w-sm" aria-hidden="true"></i>
-      <span class="bar-text">Built with HTML, CSS, JS, and GitHub Pages</span>
-      <i class="seg g2 grow" aria-hidden="true"></i><i class="seg c1 w-xxs" aria-hidden="true"></i><i class="seg g1 w-xs end" aria-hidden="true"></i>
+    <!-- Right status column: live readouts (wide screens) -->
+    <aside class="status" aria-hidden="true">
+      <div class="stat"><span>Date</span><b id="ro-date">----.--.--</b></div>
+      <div class="stat stat-c"><span>Local</span><b id="ro-time">--:--:--</b></div>
+      <div class="stat"><span>Session</span><b id="ro-up">00:00:00</b></div>
+      <div class="stat stat-s"><span>Panel</span><b id="ro-panel">01</b></div>
+      <div class="ticks" id="head-ticks"></div>
+      <div class="status-chips">
+        <i class="s"></i><i></i><i class="c"></i><i></i><i></i><i class="s"></i><i></i><i class="c"></i><i></i><i class="s"></i><i></i><i></i>
+      </div>
+      <p class="status-note">Built with HTML, CSS, JS, and GitHub Pages</p>
+    </aside>
+
+    <footer class="bar bar-bot" aria-hidden="true">
+      <i class="seg f1 w-md"></i><i class="seg s w-xxs"></i><i class="seg f2 grow"></i><i class="seg c w-xs"></i><i class="seg f1 w-sm end"></i>
     </footer>
   </div>
 

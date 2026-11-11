@@ -1,5 +1,5 @@
 /* ==========================================================================
-   GREATWAVE OS 3.0: behaviour for the home page
+   GREATWAVE OS 4.0: behaviour for the home page
    --------------------------------------------------------------------------
    The page content is plain HTML in index.html. This file only adds:
      1. Panel switching (sidebar + #hash links, back/forward, keys 1-4)
@@ -7,6 +7,7 @@
      3. Boot screen + frame power-on (first visit per session, skippable)
      4. Faint pointer trail (mouse only)
      5. Hidden easter eggs: type a word anywhere on the page
+     6. Screensaver after 90 s idle (or type "warp")
    Without JavaScript all panels are shown one after another.
    ========================================================================== */
 "use strict";
@@ -28,11 +29,14 @@ const EGGS = {
   quote: "“Force without power falls to its own weight.”",
   alert: "Red alert. False alarm: someone left a soldering iron on. Standing down in 5 seconds.",
   matrix: "Wake up, guest … (any key or click to stop)",
+  engage: "Engaging. Course laid in for wherever Kenan is building next.",
+  beam: "Energizing … panel rematerialized. All pieces accounted for.",
+  konami: "Cheat code accepted. +30 lives, unlimited coffee, zero bugs (that last one is a lie).",
 };
 
 const BOOT = {
   status: "Initializing",
-  left: "Greatwave OS <b>3.0</b>",
+  left: "Greatwave OS <b>4.0</b>",
   right: "Kenan // Code &amp; Circuits",
 };
 
@@ -100,7 +104,9 @@ const BOOT = {
       else a.removeAttribute("aria-current");
     });
 
-    document.getElementById("ro-panel").textContent = String(PANELS.indexOf(id) + 1).padStart(2, "0");
+    const num = String(PANELS.indexOf(id) + 1).padStart(2, "0");
+    document.getElementById("ro-panel").textContent = num;
+    document.getElementById("panel-tag").textContent = num + " · " + id;
     scroller.scrollTop = 0;
 
     if (!first) {
@@ -255,7 +261,9 @@ const BOOT = {
 
   /* ---- 5. Easter eggs -----------------------------------------------------
      Type one of these words anywhere on the page:
-       whoami · sudo · coffee · wave · quote · redalert · matrix           */
+       whoami · sudo · coffee · wave · quote · redalert · matrix
+       warp · engage · beam
+     Also: the Konami code, and clicking the "GW-21" cap five times.           */
   let toastTimer = 0;
   function toast(label, text, art) {
     toastEl.replaceChildren(el("span", "toast-label", label));
@@ -280,6 +288,9 @@ const BOOT = {
       alertTimer = setTimeout(function () { root.classList.remove("red-alert"); }, 5000);
     },
     matrix: function () { matrix(); },
+    warp: function () { screensaver.start(); },
+    engage: function () { toast("engage", EGGS.engage); screensaver.start({ burst: 1800 }); },
+    beam: function () { beam(); },
   };
 
   let typed = "";
@@ -354,6 +365,202 @@ const BOOT = {
       window.addEventListener("pointerdown", stop, true);
     }, 0);
   }
+
+  /* ---- Easter egg: beam (transporter shimmer on the panel) --------------- */
+  function beam() {
+    toast("beam", EGGS.beam);
+    if (REDUCED) return;
+    scroller.classList.remove("beaming");
+    void scroller.offsetWidth;
+    scroller.classList.add("beaming");
+    setTimeout(function () { scroller.classList.remove("beaming"); }, 1700);
+  }
+
+  /* ---- Easter egg: Konami code (up up down down left right left right b a) */
+  const KONAMI = ["arrowup", "arrowup", "arrowdown", "arrowdown", "arrowleft",
+    "arrowright", "arrowleft", "arrowright", "b", "a"];
+  let konamiAt = 0;
+  document.addEventListener("keydown", function (e) {
+    const k = e.key.toLowerCase();
+    konamiAt = k === KONAMI[konamiAt] ? konamiAt + 1 : (k === KONAMI[0] ? 1 : 0);
+    if (konamiAt === KONAMI.length) {
+      konamiAt = 0;
+      toast("konami", EGGS.konami);
+      if (REDUCED) return;
+      root.classList.add("konami");
+      setTimeout(function () { root.classList.remove("konami"); }, 4000);
+    }
+  });
+
+  /* ---- Easter egg: click the "GW-21" cap five times ---------------------- */
+  const cap = document.querySelector(".side-cap-top");
+  let capClicks = 0;
+  let capTimer = 0;
+  if (cap) {
+    cap.addEventListener("click", function () {
+      capClicks++;
+      clearTimeout(capTimer);
+      capTimer = setTimeout(function () { capClicks = 0; }, 1500);
+      if (capClicks < 5) return;
+      capClicks = 0;
+      const up = Math.floor((Date.now() - started) / 1000);
+      toast("diagnostics",
+        "Display " + innerWidth + "×" + innerHeight + " @" + (window.devicePixelRatio || 1) + "x · " +
+        "session " + pad(Math.floor(up / 60)) + ":" + pad(up % 60) + " · " +
+        "panels 4/4 online · coffee reserves: low · all systems nominal.");
+    });
+  }
+
+  /* ---- Screensaver --------------------------------------------------------
+     After IDLE_MS without input (or when you type "warp"), a full-screen
+     standby display appears: many horizontal stripes, each carrying a soft
+     glow that travels right to left. The glows are staggered from stripe to
+     stripe so together they form a rolling wave. Any input closes it.     */
+  const IDLE_MS = 90000;
+
+  const screensaver = (function () {
+    let overlay = null;
+    let raf = 0;
+    let stopTimer = 0;
+    let t0 = 0;
+    let guardUntil = 0;
+    let onResize = null;
+
+    function draw(canvas, ctx, now) {
+      const w = canvas.clientWidth;
+      const h = canvas.clientHeight;
+      const t = (now - t0) / 1000;
+      const css = getComputedStyle(root);
+      const cols = [
+        css.getPropertyValue("--cyan").trim() || "#45b4de",
+        css.getPropertyValue("--f3").trim() || "#a6aeca",
+        css.getPropertyValue("--salmon").trim() || "#f0876a",
+      ];
+
+      ctx.globalCompositeOperation = "source-over";
+      ctx.globalAlpha = 1;
+      ctx.fillStyle = "#02040a";
+      ctx.fillRect(0, 0, w, h);
+      ctx.globalCompositeOperation = "lighter";
+
+      const rows = Math.max(14, Math.min(44, Math.round(h / 24)));
+      const band = h / rows;
+      const thick = band * 0.5;
+      const len = w * 0.42;          // length of each glow
+      const period = 4.2;            // seconds for one glow to cross
+      const span = w + len;
+
+      for (let r = 0; r < rows; r++) {
+        const y = r * band + (band - thick) / 2;
+        const p = r / rows;
+        // Stagger: a sine across the rows makes the glows form a wave.
+        const lag = (Math.sin(p * Math.PI * 1.6) * 0.32 + p * 0.25) * period;
+        const pos = (((t + lag) / period) % 1) * span;
+        const head = w - pos;        // moves right -> left
+        const col = r % 9 === 4 ? cols[2] : (r % 3 === 0 ? cols[1] : cols[0]);
+
+        // faint resting stripe
+        ctx.globalAlpha = 0.045;
+        ctx.fillStyle = cols[1];
+        ctx.fillRect(0, y, w, thick);
+
+        // travelling glow: bright head on the left, fading tail to the right
+        const g = ctx.createLinearGradient(head, 0, head + len, 0);
+        g.addColorStop(0, "rgba(0,0,0,0)");
+        g.addColorStop(0.04, col);
+        g.addColorStop(0.35, col);
+        g.addColorStop(1, "rgba(0,0,0,0)");
+        ctx.fillStyle = g;
+        ctx.globalAlpha = 0.11;                       // soft halo
+        ctx.fillRect(head, y - thick * 0.6, len, thick * 2.2);
+        ctx.globalAlpha = 0.34;                       // core
+        ctx.fillRect(head, y, len, thick);
+      }
+      ctx.globalAlpha = 1;
+      ctx.globalCompositeOperation = "source-over";
+    }
+
+    function start(opts) {
+      opts = opts || {};
+      if (overlay || matrixStop) return;
+      if (REDUCED) {
+        if (!opts.burst) toast("warp", "Standby animation skipped: your system asks for reduced motion.");
+        return;
+      }
+
+      overlay = el("div", "saver");
+      overlay.setAttribute("aria-hidden", "true");
+      const canvas = el("canvas");
+      const label = el("div", "saver-label");
+      const clock = el("b", "saver-clock");
+      label.append(el("span", "", opts.burst ? "Warp" : "Greatwave OS · Standby"), clock);
+      if (!opts.burst) label.append(el("small", "", "Move the mouse or press any key"));
+      overlay.append(canvas, label);
+      document.body.append(overlay);
+
+      const ctx = canvas.getContext("2d");
+      onResize = function () {
+        const dpr = Math.min(window.devicePixelRatio || 1, 1.5);
+        canvas.width = canvas.clientWidth * dpr;
+        canvas.height = canvas.clientHeight * dpr;
+        ctx.setTransform(dpr, 0, 0, dpr, 0, 0);
+      };
+      onResize();
+      window.addEventListener("resize", onResize);
+
+      t0 = performance.now();
+      let last = 0;
+      (function loop(now) {
+        raf = requestAnimationFrame(loop);
+        if (now - last < 25) return;   // ~40 fps is plenty
+        last = now;
+        clock.textContent = ro.time.textContent;
+        draw(canvas, ctx, now);
+      })(t0);
+
+      requestAnimationFrame(function () { if (overlay) overlay.classList.add("on"); });
+      guardUntil = performance.now() + 400;  // ignore the input that started it
+      if (opts.burst) stopTimer = setTimeout(stop, opts.burst);
+    }
+
+    function stop() {
+      if (!overlay) return;
+      cancelAnimationFrame(raf);
+      clearTimeout(stopTimer);
+      window.removeEventListener("resize", onResize);
+      const o = overlay;
+      overlay = null;
+      o.classList.remove("on");
+      setTimeout(function () { o.remove(); }, 450);
+    }
+
+    return {
+      start: start,
+      stop: stop,
+      active: function () { return !!overlay; },
+      guarded: function () { return performance.now() < guardUntil; },
+    };
+  })();
+
+  // Idle timer: any input resets it, and closes the screensaver if it is up.
+  let idleTimer = 0;
+  function activity(e) {
+    if (screensaver.active() && !screensaver.guarded()) {
+      if (e.type === "keydown" || e.type === "pointerdown") {
+        e.preventDefault();
+        e.stopPropagation(); // the key or click that wakes it does nothing else
+      }
+      screensaver.stop();
+    }
+    clearTimeout(idleTimer);
+    idleTimer = setTimeout(function () {
+      if (!document.hidden) screensaver.start();
+    }, IDLE_MS);
+  }
+  ["pointermove", "pointerdown", "keydown", "wheel", "touchstart"].forEach(function (type) {
+    window.addEventListener(type, activity, { capture: true, passive: type !== "keydown" && type !== "pointerdown" });
+  });
+  activity({ type: "init" });
 
   /* ---- Start -------------------------------------------------------------- */
   show(panelFromHash(), { focus: false });
