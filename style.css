@@ -1,21 +1,22 @@
 /* ==========================================================================
-   GREATWAVE OS 2.0: console-style home page
-   A modern "display system" frame (rounded elbows, coloured rail buttons,
-   segmented bars) around a terminal.
+   GREATWAVE OS 3.0: display-system home page
+   Slate frame, cyan highlights, orange accents. The whole interface is
+   sized in rem, and the root font size follows the viewport's width AND
+   height (section 2), so it fits any screen without page scrolling. Only
+   the display panel scrolls when its content is long.
 
    Sections:
-     1. Theme tokens (palette, fonts, sizes)   <- edit these to retheme
-     2. Base
+     1. Theme tokens (palette, fonts, geometry)   <- edit these to retheme
+     2. Scaling + base
      3. Frame layout (grid)
      4. Elbows, bars, concave corners
-     5. Header (title + live readouts)
-     6. Rail command buttons
-     7. Display (output) + printed content
-     8. Prompt line + block cursor
-     9. No-JS fallback
-    10. Effects: power-on, red alert, trail, matrix
-    11. Phones
-    12. Reduced motion
+     5. Header (title, readouts, tick meter)
+     6. Sidebar navigation
+     7. Display + panels
+     8. Content components (boxes, tiles, cards, contact)
+     9. Boot screen, toast, effects
+    10. Screen shapes: portrait, phones, short landscape
+    11. No-JS + reduced motion
    ========================================================================== */
 
 /* 1. Theme tokens --------------------------------------------------------- */
@@ -29,30 +30,61 @@
 }
 
 :root {
-  /* Palette: Great Wave blues + console ambers. All are light enough to
-     carry black text (contrast 7:1 or better). */
-  --p1: #ff9a3c; /* amber    */
-  --p2: #ffcc99; /* peach    */
-  --p3: #8cb4ff; /* sky      */
-  --p4: #c3a6ff; /* lavender */
-  --p5: #e8734a; /* rust     */
+  /* Slate greys */
+  --g0: #1e2229;
+  --g1: #2f3749;
+  --g2: #52596e;
+  --g3: #6d748c;
+  --g4: #9ea5ba;
+  --g5: #dfe1e8; /* body text on black: ~15:1 */
+  /* Cyans */
+  --c0: #1c3c55;
+  --c1: #2a7193;
+  --c2: #37a6d1;
+  --c3: #67caf0; /* headings on black: ~11:1 */
+  --c4: #93e1ff;
+  /* Orange accents */
+  --o0: #e7442a;
+  --o1: #ff6753;
+  --o2: #ff977b; /* small labels on black: ~10:1 */
+  --o3: #fcc59d;
 
   --bg: #000;
-  --ink: #f1e9d8;      /* body text      (contrast ~17:1)  */
-  --ink-dim: #a39b8b;  /* secondary text (contrast ~7.6:1) */
-  --rule: #2a2723;     /* hairlines */
+  --panel-bg: #06080b;
 
-  --ui: "Antonio", "Arial Narrow", "Roboto Condensed", "Helvetica Neue", sans-serif;
-  --mono: ui-monospace, "Cascadia Mono", "SFMono-Regular", Menlo, Consolas,
-    "Liberation Mono", monospace;
+  --font: "Antonio", "Arial Narrow", "Roboto Condensed", "Helvetica Neue", sans-serif;
 
-  /* Frame geometry */
-  --rail: clamp(150px, 15vw, 210px);   /* left column width */
-  --bar: 16px;                         /* horizontal bar thickness */
-  --fbar: 20px;                        /* footer bar (carries text) */
-  --corner: 26px;                      /* concave inner corner radius */
-  --gap: 5px;                          /* black gaps between blocks */
-  --inset: calc(var(--corner) + 18px); /* content distance from the rail */
+  /* Frame geometry (rem, so it scales with the screen) */
+  --side: 11.5rem;   /* sidebar width */
+  --bar: 0.95rem;    /* bar thickness */
+  --fbar: 1.25rem;   /* footer bar (carries text) */
+  --corner: 1.6rem;  /* concave inner corner */
+  --gap: 0.3rem;     /* black gaps between blocks */
+  --inset: calc(var(--corner) + 1.3rem);
+  --radius: 0.9rem;  /* panels and boxes */
+}
+
+/* Red alert: the same tokens in red (toggled by script.js) */
+.red-alert {
+  --g1: #783520;
+  --g2: #a24f35;
+  --g3: #c87157;
+  --g4: #da876e;
+  --g5: #eec1b4;
+  --c0: #922605;
+  --c1: #aa320e;
+  --c2: #ea6238;
+  --c3: #fa8764;
+  --c4: #fba185;
+  --o1: #ef1d10;
+  --o2: #fa8764;
+}
+
+/* 2. Scaling + base ------------------------------------------------------- */
+html {
+  /* 1rem follows the smaller of width and height, so the layout keeps its
+     proportions from a laptop up to 4K and ultrawide screens. */
+  font-size: clamp(12px, min(1.05vw, 1.85vh), 30px);
 }
 
 *,
@@ -61,7 +93,6 @@
   box-sizing: border-box;
 }
 
-/* 2. Base ----------------------------------------------------------------- */
 html,
 body {
   height: 100%;
@@ -71,119 +102,119 @@ body {
 }
 
 body {
-  color: var(--ink);
-  font-family: var(--mono);
-  font-size: clamp(14.5px, 0.35vw + 13px, 17px);
-  line-height: 1.6;
+  color: var(--g5);
+  font-family: var(--font);
+  font-size: 1.15rem;
+  font-weight: 400;
+  line-height: 1.5;
+  letter-spacing: 0.025em;
   -webkit-text-size-adjust: 100%;
   text-size-adjust: 100%;
   -webkit-font-smoothing: antialiased;
 }
 
-button {
-  font: inherit;
-  color: inherit;
+a {
+  color: var(--c3);
+  text-decoration-thickness: 1px;
+  text-underline-offset: 0.2em;
 }
 
 ::selection {
-  background: var(--p2);
+  background: var(--c2);
   color: #000;
 }
 
 :focus-visible {
-  outline: 2px solid #fff;
+  outline: 2px solid var(--c4);
   outline-offset: 2px;
 }
 
+.sr-only {
+  position: absolute;
+  width: 1px;
+  height: 1px;
+  margin: -1px;
+  padding: 0;
+  overflow: hidden;
+  clip: rect(0 0 0 0);
+  white-space: nowrap;
+  border: 0;
+}
+
 /* 3. Frame layout --------------------------------------------------------- */
-.console {
+.frame {
   position: fixed;
-  top: 0;
-  left: 0;
-  right: 0;
-  height: 100vh;
-  height: 100dvh;
-  max-width: 1440px;
-  margin: 0 auto;
+  inset: 0;
   padding:
-    max(14px, env(safe-area-inset-top))
-    max(18px, env(safe-area-inset-right))
-    max(14px, env(safe-area-inset-bottom))
-    max(18px, env(safe-area-inset-left));
+    max(0.9rem, env(safe-area-inset-top))
+    max(1.1rem, env(safe-area-inset-right))
+    max(0.9rem, env(safe-area-inset-bottom))
+    max(1.1rem, env(safe-area-inset-left));
   display: grid;
-  grid-template-columns: var(--rail) minmax(0, 1fr);
-  grid-template-rows: auto var(--bar) 10px var(--bar) minmax(0, 1fr) auto var(--fbar);
+  grid-template-columns: var(--side) minmax(0, 1fr);
+  grid-template-rows: auto var(--bar) 0.55rem var(--bar) minmax(0, 1fr) var(--fbar);
   grid-template-areas:
     "cap  head"
     "cap  hbar"
     ".    .   "
-    "rail tbar"
-    "rail display"
-    "rail prompt"
-    "rail fbar";
-}
-
-/* script.js keeps --app-h equal to the visible viewport height, so the
-   prompt stays above the on-screen keyboard on phones. */
-.js .console {
-  height: var(--app-h, 100dvh);
+    "side tbar"
+    "side display"
+    "side fbar";
 }
 
 .cap { grid-area: cap; }
 .head { grid-area: head; }
 .bar-head { grid-area: hbar; }
 .bar-top { grid-area: tbar; }
-.rail { grid-area: rail; }
+.side { grid-area: side; }
 .display { grid-area: display; }
-.prompt { grid-area: prompt; }
 .bar-foot { grid-area: fbar; }
 
 /* 4. Elbows, bars, concave corners --------------------------------------- */
 .cap,
-.rail-elbow,
-.rail-foot {
+.elbow,
+.foot-elbow {
   position: relative;
   display: flex;
   align-items: flex-end;
   justify-content: flex-end;
-  padding: 0 12px 6px;
-  color: #000;
-  font-family: var(--ui);
-  font-size: 0.8rem;
+  padding: 0 0.8rem 0.35rem;
+  font-size: 0.78rem;
   font-weight: 500;
-  letter-spacing: 0.08em;
+  letter-spacing: 0.12em;
 }
 
-/* Upper frame: block curving into the header bar */
 .cap {
-  background: var(--p1);
-  border-bottom-left-radius: 72px 52px;
-  padding-bottom: calc(var(--bar) + 6px);
+  background: var(--g3);
+  color: #000;
+  border-bottom-left-radius: 4.6rem 3.4rem;
+  padding-bottom: calc(var(--bar) + 0.35rem);
 }
 
-/* Lower frame: top elbow, buttons, filler, bottom elbow */
-.rail {
+.side {
   min-height: 0;
   display: flex;
   flex-direction: column;
   gap: var(--gap);
 }
 
-.rail-elbow {
+.elbow {
   flex: none;
-  height: 76px;
-  background: var(--p2);
-  border-top-left-radius: 72px 52px;
+  height: 4.2rem;
+  background: var(--g2);
+  color: var(--g5);
+  border-top-left-radius: 4.6rem 3.4rem;
 }
 
-.rail-foot {
+.foot-elbow {
   flex: none;
-  height: 56px;
-  background: var(--p4);
-  border-bottom-left-radius: 72px 44px;
+  height: 3.2rem;
+  background: var(--g4);
+  color: #000;
+  border-bottom-left-radius: 4.6rem 2.8rem;
 }
 
-.rail-fill {
+.side-fill {
   flex: 1 1 0;
   min-height: 0;
   display: flex;
@@ -191,16 +222,16 @@ button {
   gap: var(--gap);
 }
 
-.rail-fill i {
+.side-fill i {
   flex: none;
-  height: 28px;
+  height: 1.6rem;
   background: var(--c);
 }
 
-.rail-fill i.grow {
+.side-fill i.grow {
   flex: 1 1 0;
-  min-height: 0;
   height: auto;
+  min-height: 0;
 }
 
 /* Segmented bars */
@@ -215,25 +246,26 @@ button {
 .seg {
   display: block;
   flex: none;
-  width: 22%;
+  width: 20%;
   background: var(--c);
 }
 
+.seg.w-xxs { width: 2%; }
 .seg.w-xs { width: 4%; }
 .seg.w-sm { width: 9%; }
 .seg.w-md { width: 15%; }
 .seg.grow { flex: 1 1 0; width: auto; }
 .seg.end { border-radius: 0 999px 999px 0; }
 
-/* Colour classes, shared by segments, buttons and rail blocks */
-.s1, .c-a { --c: var(--p1); }
-.s2, .c-c { --c: var(--p2); }
-.s3, .c-b { --c: var(--p3); }
-.s4, .c-d { --c: var(--p4); }
-.s5, .c-e { --c: var(--p5); }
+/* Colour classes for bars and filler blocks */
+.g1 { --c: var(--g2); }
+.g2 { --c: var(--g3); }
+.g3 { --c: var(--g4); }
+.c1 { --c: var(--c1); }
+.c2 { --c: var(--c2); }
+.o1 { --c: var(--o1); }
 
-/* Concave inner corners where a bar meets its elbow: a square in the
-   elbow colour with a quarter circle cut out. */
+/* Concave inner corners: a square in the elbow colour minus a quarter circle */
 .bar-head::before,
 .bar-top::before,
 .bar-foot::before {
@@ -248,28 +280,27 @@ button {
 
 .bar-head::before {
   bottom: 100%;
-  background: radial-gradient(circle var(--corner) at 100% 0, transparent calc(100% - 0.5px), var(--p1) 100%);
+  background: radial-gradient(circle var(--corner) at 100% 0, transparent calc(100% - 0.5px), var(--g3) 100%);
 }
 
 .bar-top::before {
   top: 100%;
-  background: radial-gradient(circle var(--corner) at 100% 100%, transparent calc(100% - 0.5px), var(--p2) 100%);
+  background: radial-gradient(circle var(--corner) at 100% 100%, transparent calc(100% - 0.5px), var(--g2) 100%);
 }
 
 .bar-foot::before {
   bottom: 100%;
-  background: radial-gradient(circle var(--corner) at 100% 0, transparent calc(100% - 0.5px), var(--p4) 100%);
+  background: radial-gradient(circle var(--corner) at 100% 0, transparent calc(100% - 0.5px), var(--g4) 100%);
 }
 
 .bar-text {
   flex: none;
   align-self: center;
-  padding: 0 10px;
-  color: var(--ink-dim);
-  font-family: var(--ui);
+  padding: 0 0.7rem;
+  color: var(--g4);
   font-size: 0.78rem;
   line-height: 1;
-  letter-spacing: 0.14em;
+  letter-spacing: 0.16em;
   text-transform: uppercase;
   white-space: nowrap;
 }
@@ -280,8 +311,15 @@ button {
   display: flex;
   align-items: flex-end;
   justify-content: space-between;
-  gap: 24px;
-  padding: 4px 4px 12px var(--inset);
+  gap: 2rem;
+  padding: 0.2rem 0.2rem 0.75rem var(--inset);
+}
+
+.head-info {
+  display: flex;
+  flex-direction: column;
+  gap: 0.6rem;
+  min-width: 0;
 }
 
 .title {
@@ -289,549 +327,761 @@ button {
   display: flex;
   flex-direction: column;
   align-items: flex-end;
-  font-family: var(--ui);
   font-weight: 500;
-  text-transform: uppercase;
   line-height: 1;
   text-align: right;
+  text-transform: uppercase;
 }
 
 .title-name {
-  color: var(--p1);
-  font-size: clamp(3rem, 6.5vw, 5.6rem);
+  color: var(--g5);
+  font-size: 4.6rem;
   font-weight: 600;
-  letter-spacing: 0.02em;
+  letter-spacing: 0.06em;
+  margin-right: -0.06em;
 }
 
 .title-sub {
-  margin-top: 0.35em;
-  margin-right: -0.28em; /* optical: cancel trailing letter-spacing */
-  color: var(--p3);
-  font-size: clamp(0.85rem, 1.1vw, 1.05rem);
-  letter-spacing: 0.28em;
+  margin-top: 0.4em;
+  margin-right: -0.3em;
+  color: var(--c3);
+  font-size: 0.95rem;
+  letter-spacing: 0.3em;
 }
 
-/* Live readouts: real date, local time, session time, commands run */
+/* Live readouts */
 .readout {
   margin: 0;
-  display: grid;
-  grid-template-columns: repeat(4, auto);
-  gap: 4px 28px;
-  font-family: var(--ui);
+  display: flex;
+  flex-wrap: wrap;
+  gap: 0.2rem 1.8rem;
   text-transform: uppercase;
   line-height: 1.15;
 }
 
 .readout dt {
-  color: var(--ink-dim);
-  font-size: 0.72rem;
-  letter-spacing: 0.16em;
+  color: var(--g4);
+  font-size: 0.7rem;
+  letter-spacing: 0.18em;
 }
 
 .readout dd {
   margin: 0;
-  color: var(--p2);
+  color: var(--g5);
   font-size: 1.15rem;
   font-weight: 500;
   letter-spacing: 0.06em;
   font-variant-numeric: tabular-nums;
 }
 
-.readout div:nth-child(2) dd { color: var(--p1); }
-.readout div:nth-child(3) dd { color: var(--p3); }
-.readout div:nth-child(4) dd { color: var(--p4); }
+.readout div:nth-child(2) dd { color: var(--c3); }
+.readout div:nth-child(4) dd { color: var(--o2); }
 
-/* 6. Rail command buttons ------------------------------------------------- */
-.cmds {
+/* Tick meter (filled in by script.js) */
+.ticks {
+  display: flex;
+  gap: 0.22rem;
+  height: 1.05rem;
+}
+
+.ticks i {
+  width: 0.32rem;
+  border-radius: 1px;
+  background: var(--g1);
+}
+
+.ticks i:nth-child(-n + 4) { background: var(--o1); }
+.ticks i:nth-child(n + 5):nth-child(-n + 9) { background: var(--g5); }
+.ticks i:nth-child(n + 10):nth-child(-n + 14) { background: var(--g3); }
+
+.ticks i {
+  animation: tick 3.2s ease-in-out infinite;
+  animation-delay: calc(var(--t, 0) * 90ms);
+}
+
+@keyframes tick {
+  0%, 70%, 100% { opacity: 1; }
+  80% { opacity: 0.25; }
+}
+
+/* 6. Sidebar navigation --------------------------------------------------- */
+.nav {
   flex: none;
   display: flex;
   flex-direction: column;
   gap: var(--gap);
 }
 
-.btn {
+.nav-btn {
+  position: relative;
   display: flex;
   align-items: flex-end;
   justify-content: space-between;
-  gap: 8px;
-  height: clamp(38px, 6.4vh, 58px);
-  padding: 0 12px 6px;
-  border: 0;
-  border-radius: 0;
-  background: var(--c);
-  color: #000;
-  font-family: var(--ui);
+  gap: 0.5rem;
+  height: 2.85rem;
+  padding: 0 0.8rem 0.35rem;
+  background: var(--g2);
+  color: var(--g5);
   font-size: 1.1rem;
   font-weight: 500;
-  letter-spacing: 0.1em;
+  letter-spacing: 0.12em;
   text-transform: uppercase;
-  cursor: pointer;
+  text-decoration: none;
+  transition: background-color 0.18s, color 0.18s;
   -webkit-tap-highlight-color: transparent;
-  transition: background-color 0.18s, filter 0.18s;
 }
 
-.btn-num {
+.nav-num {
   align-self: flex-start;
-  padding-top: 5px;
+  padding-top: 0.3rem;
+  font-size: 0.7rem;
+  letter-spacing: 0.1em;
+  opacity: 0.75;
+}
+
+/* Links that leave this page: darker block with an orange marker */
+.nav-out {
+  background: var(--g1);
+}
+
+.nav-out::before {
+  content: "";
+  position: absolute;
+  left: 0;
+  top: 0;
+  bottom: 0;
+  width: 0.35rem;
+  background: var(--o1);
+}
+
+.nav-out .nav-num {
+  padding-left: 0.3rem;
+}
+
+.nav-label {
+  padding: 0.55rem 0.8rem 0.15rem;
+  color: var(--o2);
   font-size: 0.72rem;
-  letter-spacing: 0.08em;
-  opacity: 0.7;
+  letter-spacing: 0.22em;
+  text-align: right;
+  text-transform: uppercase;
 }
 
 @media (hover: hover) {
-  .btn:hover {
-    filter: brightness(1.12) saturate(1.1);
+  .nav-btn:hover {
+    background: var(--g4);
+    color: #000;
   }
 }
 
-.btn:active {
-  background: #fff;
+.nav-btn:active {
+  background: var(--g5);
+  color: #000;
 }
 
-/* The command that produced the most recent output */
-.btn.is-current {
-  background: var(--ink);
+/* The panel on screen */
+.nav-btn[aria-current="page"] {
+  background: var(--c2);
+  color: #000;
 }
 
-.btn.is-current .btn-num::after {
+.nav-btn[aria-current="page"] .nav-num::after {
   content: " \25B8";
 }
 
-.btn:focus-visible {
-  position: relative;
+.nav-btn:focus-visible {
   z-index: 1;
-  outline: 2px solid #fff;
   outline-offset: 2px;
 }
 
-/* 7. Display + printed content ------------------------------------------- */
+/* 7. Display + panels ----------------------------------------------------- */
 .display {
   position: relative;
-  min-height: 0;
   min-width: 0;
+  min-height: 0;
+  overflow: hidden;
 }
 
-/* The one retro touch left: very faint scanlines on the display only */
-.display::after {
-  content: "";
-  position: absolute;
-  inset: 0;
-  z-index: 3;
-  pointer-events: none;
-  background: repeating-linear-gradient(to bottom, transparent 0 2px, rgba(255, 255, 255, 0.018) 2px 3px);
-}
-
-.output {
+.panels {
   height: 100%;
   overflow-y: auto;
   overflow-x: hidden;
   overscroll-behavior: contain;
-  padding: calc(var(--corner) + 8px) 8px 18px var(--inset);
+  padding: calc(var(--corner) + 0.9rem) 0.6rem 1.6rem var(--inset);
   scrollbar-width: thin;
-  scrollbar-color: #3a3631 transparent;
-  overflow-wrap: anywhere;
+  scrollbar-color: var(--g2) transparent;
 }
 
-.output:focus-visible {
-  outline-offset: -2px;
+.panels:focus {
+  outline: none;
 }
 
-/* One block per command (echo line + its output) */
-.block {
-  margin: 0 0 1.4em;
-  max-width: 76ch;
+.panel {
+  max-width: 82rem;
 }
 
-.block > * {
-  margin: 0;
-  min-height: 1.6em; /* keeps empty lines as spacers */
-  animation: reveal 0.22s ease-out both;
-  animation-delay: calc(var(--i, 0) * 22ms);
+.panel:focus {
+  outline: none;
 }
 
-@keyframes reveal {
+.js .panel.enter {
+  animation: panel-in 0.5s cubic-bezier(0.2, 0.7, 0.2, 1) both;
+}
+
+@keyframes panel-in {
   from {
     opacity: 0;
-    transform: translateY(3px);
+    clip-path: inset(0 0 100% 0);
+    transform: translateY(0.6rem);
+  }
+  to {
+    opacity: 1;
+    clip-path: inset(0 0 -10% 0);
+    transform: none;
   }
 }
 
-.line {
-  white-space: pre-wrap;
+/* Cyan scan line across the display when the panel changes */
+.display::before {
+  content: "";
+  position: absolute;
+  left: var(--inset);
+  right: 0;
+  top: 0;
+  height: 2px;
+  z-index: 5;
+  pointer-events: none;
+  background: linear-gradient(90deg, var(--c2), var(--c4) 30%, transparent);
+  opacity: 0;
 }
 
-.echo {
-  margin-bottom: 0.35em !important;
+.display.scan::before {
+  animation: scan 0.55s ease-out;
 }
 
-.echo .ps1 {
-  color: var(--ink-dim);
+@keyframes scan {
+  0% { top: 0; opacity: 0.9; }
+  100% { top: 100%; opacity: 0; }
 }
 
-.echo .typed {
-  color: var(--p2);
-}
-
-.heading {
+.kicker {
   display: flex;
   align-items: center;
-  gap: 12px;
-  margin: 0.25em 0 0.45em !important;
-  color: var(--p3);
-  font-family: var(--ui);
+  gap: 0.6rem;
+  margin: 0 0 0.5rem;
+  color: var(--o2);
+  font-size: 0.8rem;
+  font-weight: 500;
+  letter-spacing: 0.24em;
+  text-transform: uppercase;
+}
+
+.kicker::before {
+  content: "";
+  width: 2.2rem;
+  height: 0.5rem;
+  border-radius: 999px 0 0 999px;
+  background: var(--o1);
+}
+
+.panel-title {
+  margin: 0 0 1.2rem;
+  color: var(--c3);
+  font-size: 2.7rem;
+  font-weight: 500;
+  line-height: 1.05;
+  letter-spacing: 0.06em;
+  text-transform: uppercase;
+}
+
+.lead {
+  margin: 0 0 0.9rem;
+  color: var(--g5);
   font-size: 1.4rem;
-  font-weight: 500;
-  line-height: 1.3;
-  letter-spacing: 0.1em;
-  text-transform: uppercase;
+  line-height: 1.4;
 }
 
-.heading::before {
-  content: "";
-  flex: none;
-  width: 34px;
-  height: 0.62em;
-  border-radius: 999px 0 0 999px;
-  background: var(--p1);
+.muted {
+  color: var(--g4);
 }
 
-.dim {
-  color: var(--ink-dim);
+p {
+  margin: 0 0 0.8rem;
 }
 
-.alert {
-  color: var(--p1);
-}
-
-.bullet {
-  position: relative;
-  padding-left: 2.2ch;
-}
-
-.bullet::before {
-  content: "";
-  position: absolute;
-  left: 0;
-  top: 0.62em;
-  width: 1.1ch;
-  height: 0.38em;
-  border-radius: 999px;
-  background: var(--p4);
-}
-
-.art {
-  white-space: pre;
-  overflow: hidden;
-  line-height: 1.25;
-  color: var(--p3);
-  font-family: var(--mono);
-}
-
-/* help listing: command left, description right */
-.row {
+/* Home */
+.home-grid {
   display: grid;
-  grid-template-columns: 11ch 1fr;
-  column-gap: 1.5ch;
-  align-items: baseline;
+  grid-template-columns: minmax(0, 1.25fr) minmax(0, 1fr);
+  gap: 2.4rem;
+  align-items: start;
 }
 
-/* ls listing */
-.files {
-  display: flex;
-  flex-wrap: wrap;
-  gap: 0.2em 3ch;
-}
-
-/* Project entries: a coloured tab on the left */
-.entry {
-  position: relative;
-  padding: 2px 0 2px 2.4ch;
-  margin-bottom: 1em !important;
-}
-
-.entry::before {
-  content: "";
-  position: absolute;
-  left: 0;
-  top: 4px;
-  bottom: 4px;
-  width: 8px;
-  border-radius: 999px 0 0 999px;
-  background: var(--c, var(--p3));
-}
-
-.entry:nth-child(4n + 2) { --c: var(--p1); }
-.entry:nth-child(4n + 3) { --c: var(--p3); }
-.entry:nth-child(4n + 4) { --c: var(--p4); }
-.entry:nth-child(4n + 5) { --c: var(--p5); }
-
-.entry-title {
-  display: block;
-  color: var(--p2);
-  font-family: var(--ui);
-  font-size: 1.2rem;
-  font-weight: 500;
-  letter-spacing: 0.08em;
-  text-transform: uppercase;
-}
-
-.entry-desc,
-.entry-extra {
-  display: block;
-}
-
-.entry-extra {
-  color: var(--ink-dim);
-}
-
-/* Links and clickable commands inside the output */
-.output a,
-.cmd-link {
-  color: var(--p3);
-  text-decoration: underline;
-  text-decoration-thickness: 1px;
-  text-underline-offset: 0.22em;
-  border-radius: 2px;
-  transition: background-color 0.15s, color 0.15s;
-}
-
-.entry-title a {
-  color: var(--p2);
-}
-
-.cmd-link {
-  display: inline;
-  padding: 0;
+.hello {
   margin: 0;
-  background: none;
-  border: 0;
-  color: var(--p2);
-  font-family: inherit;
-  cursor: pointer;
-  text-decoration-style: dotted;
-  -webkit-tap-highlight-color: transparent;
-}
-
-.output a:active,
-.cmd-link:active {
-  background: var(--p2);
-  color: #000;
-  text-decoration: none;
-}
-
-@media (hover: hover) {
-  .output a:hover,
-  .cmd-link:hover {
-    background: var(--p2);
-    color: #000;
-    text-decoration: none;
-  }
-}
-
-/* Greeting */
-.headline {
-  margin: 0;
-  color: var(--ink);
-  font-family: var(--ui);
-  font-size: clamp(2.4rem, 5.6vw, 4.4rem);
+  color: var(--g5);
+  font-size: 5rem;
   font-weight: 600;
-  line-height: 1.08;
+  line-height: 1.02;
   letter-spacing: 0.01em;
 }
 
 .tagline {
-  margin: 0.45em 0 1em;
-  color: var(--p1);
-  font-family: var(--ui);
-  font-size: 1.05rem;
-  letter-spacing: 0.3em;
+  margin: 0.7rem 0 1.4rem;
+  color: var(--c3);
+  font-size: 1.1rem;
+  font-weight: 500;
+  letter-spacing: 0.32em;
   text-transform: uppercase;
 }
 
 .quote {
   position: relative;
-  padding-left: 2.4ch;
-  color: var(--ink-dim);
-  font-style: italic;
+  margin: 1.6rem 0 0;
+  padding: 0.2rem 0 0.2rem 1.3rem;
+  color: var(--g4);
+  font-size: 1.25rem;
+  font-style: normal;
+  letter-spacing: 0.04em;
 }
 
 .quote::before {
   content: "";
   position: absolute;
   left: 0;
-  top: 0.25em;
-  bottom: 0.25em;
-  width: 3px;
-  border-radius: 2px;
-  background: var(--p4);
+  top: 0;
+  bottom: 0;
+  width: 0.35rem;
+  border-radius: 999px;
+  background: var(--o1);
 }
 
-/* Boot lines */
-.boot {
-  color: var(--ink-dim);
-  font-family: var(--ui);
-  font-size: 0.95rem;
-  letter-spacing: 0.14em;
+.quote p {
+  margin: 0;
+}
+
+/* 8. Content components --------------------------------------------------- */
+/* Outlined box with a small cyan tab on its top edge */
+.box,
+.card {
+  position: relative;
+  border: 2px solid var(--g1);
+  border-radius: var(--radius);
+  background: var(--panel-bg);
+  padding: 1.15rem 1.35rem 1.1rem;
+}
+
+.box::before,
+.card::before {
+  content: "";
+  position: absolute;
+  top: -2px;
+  left: 1.3rem;
+  width: 2.6rem;
+  height: 0.28rem;
+  border-radius: 0 0 3px 3px;
+  background: var(--c2);
+}
+
+.box > :last-child,
+.card > :last-child {
+  margin-bottom: 0;
+}
+
+.box-label {
+  display: flex;
+  align-items: center;
+  gap: 0.6rem;
+  margin: 0 0 0.8rem;
+  color: var(--o2);
+  font-size: 0.85rem;
+  font-weight: 500;
+  letter-spacing: 0.22em;
   text-transform: uppercase;
 }
 
-/* Caret shown at the end of a line while it is being typed out */
-.typing::after {
+.box-label::after {
   content: "";
-  display: inline-block;
-  width: 0.55em;
-  height: 0.9em;
-  margin-left: 0.1em;
-  vertical-align: -0.08em;
-  background: currentColor;
-}
-
-/* 8. Prompt line + block cursor ------------------------------------------- */
-.prompt {
-  display: flex;
-  align-items: center;
-  gap: 1ch;
-  min-width: 0;
-  margin: 0 0 8px var(--inset);
-  padding: 10px 2px 2px;
-  border-top: 1px solid var(--rule);
-  transition: border-color 0.2s;
-}
-
-.prompt:focus-within {
-  border-top-color: var(--p1);
-}
-
-.prompt-label {
-  flex: none;
-  color: var(--ink-dim);
-  white-space: nowrap;
-  cursor: text;
-  transition: color 0.2s;
-}
-
-.prompt:focus-within .prompt-label {
-  color: var(--p1);
-}
-
-.prompt-field {
-  position: relative;
   flex: 1;
-  min-width: 0;
-  /* 16px minimum stops iOS Safari from zooming in when the input is focused */
-  font-size: max(16px, 1em);
-  line-height: 1.5;
+  height: 2px;
+  background: var(--g1);
 }
 
-.prompt-input {
-  display: block;
-  width: 100%;
-  padding: 0;
+/* About */
+.about-grid {
+  display: grid;
+  grid-template-columns: repeat(2, minmax(0, 1fr));
+  gap: 1.3rem;
+}
+
+.box-wide {
+  grid-column: 1 / -1;
+}
+
+.chips {
+  display: grid;
+  grid-template-columns: repeat(auto-fill, minmax(11rem, 1fr));
+  gap: 0.45rem;
   margin: 0;
-  background: transparent;
-  border: 0;
-  outline: 0;
-  border-radius: 0;
-  color: var(--p2);
-  caret-color: transparent; /* replaced by the block cursor below */
-  font: inherit;
+  padding: 0;
+  list-style: none;
 }
 
-/* Block cursor: script.js moves it with --x (in px) */
-.cursor {
+.chips li {
+  position: relative;
+  padding: 0.45rem 0.8rem 0.45rem 1.25rem;
+  border-radius: 0.3rem;
+  background: var(--g1);
+  color: var(--g5);
+  font-size: 1.02rem;
+  letter-spacing: 0.1em;
+  text-transform: uppercase;
+}
+
+.chips li::before {
+  content: "";
   position: absolute;
-  top: 0.12em;
-  left: 0;
-  width: 1ch;
-  height: 1.28em;
-  pointer-events: none;
-  transform: translateX(var(--x, 0px));
-  border: 1px solid var(--ink-dim); /* hollow while the input is not focused */
+  left: 0.45rem;
+  top: 0.55rem;
+  bottom: 0.55rem;
+  width: 0.28rem;
+  border-radius: 999px;
+  background: var(--c2);
 }
 
-.prompt-input:focus ~ .cursor {
-  border-color: var(--p1);
-  background: var(--p1);
-  mix-blend-mode: difference; /* keeps the character under it readable */
-  animation: blink 1.06s steps(1) infinite;
+/* Home quick-access tiles */
+.tiles {
+  display: grid;
+  grid-template-columns: repeat(2, minmax(0, 1fr));
+  gap: 0.6rem;
+  margin: 0;
+  padding: 0;
+  list-style: none;
 }
 
-.cursor[hidden] {
-  display: none;
+.tile {
+  position: relative;
+  display: grid;
+  grid-template-columns: 1fr auto;
+  align-content: end;
+  gap: 0.1rem 0.6rem;
+  min-height: 6.4rem;
+  height: 100%;
+  padding: 0.8rem 1rem 0.8rem 1.4rem;
+  border: 2px solid var(--g1);
+  border-radius: 0.7rem;
+  background: var(--panel-bg);
+  color: var(--g5);
+  text-decoration: none;
+  transition: border-color 0.18s, background-color 0.18s;
 }
 
-@keyframes blink {
-  50% {
-    opacity: 0;
+.tile::before {
+  content: "";
+  position: absolute;
+  left: 0.5rem;
+  top: 0.75rem;
+  bottom: 0.75rem;
+  width: 0.32rem;
+  border-radius: 999px;
+  background: var(--c2);
+}
+
+.tile-out::before {
+  background: var(--o1);
+}
+
+.tile-code {
+  grid-column: 2;
+  grid-row: 1;
+  align-self: start;
+  color: var(--g4);
+  font-size: 0.75rem;
+  letter-spacing: 0.12em;
+}
+
+.tile-name {
+  grid-column: 1 / -1;
+  color: var(--g5);
+  font-size: 1.3rem;
+  font-weight: 500;
+  letter-spacing: 0.1em;
+  text-transform: uppercase;
+}
+
+.tile-text {
+  grid-column: 1 / -1;
+  color: var(--g4);
+  font-size: 1rem;
+}
+
+@media (hover: hover) {
+  .tile:hover {
+    border-color: var(--c2);
+    background: #0a1720;
   }
 }
 
-/* 9. No-JS fallback ------------------------------------------------------- */
-.no-js .cmds,
-.no-js .prompt,
-.no-js .trail,
-.no-js .readout {
-  display: none;
+.tile:active {
+  border-color: var(--c3);
 }
 
-.plain {
-  max-width: 76ch;
-}
-
-.plain .heading {
-  margin-top: 1.6em !important;
-}
-
-.plain p {
-  margin: 0 0 0.9em;
-}
-
-.plain ul {
+/* Project cards */
+.cards {
+  display: grid;
+  grid-template-columns: repeat(auto-fill, minmax(19rem, 1fr));
+  gap: 1.3rem;
   margin: 0;
-  padding-left: 2.2ch;
+  padding: 0;
+  list-style: none;
 }
 
-.plain li {
-  margin-bottom: 0.35em;
+.card {
+  display: flex;
+  flex-direction: column;
 }
 
-/* 10. Effects ------------------------------------------------------------- */
-/* Power-on sequence (script.js adds .powering during the first boot) */
+.card-code {
+  margin: 0;
+  align-self: flex-end;
+  color: var(--o2);
+  font-size: 0.75rem;
+  letter-spacing: 0.18em;
+}
+
+.card-title {
+  margin: 0 0 0.5rem;
+  color: var(--g5);
+  font-size: 1.75rem;
+  font-weight: 500;
+  line-height: 1.1;
+  letter-spacing: 0.06em;
+  text-transform: uppercase;
+}
+
+.card-links {
+  margin-top: auto !important;
+  padding-top: 0.6rem;
+  display: flex;
+  flex-wrap: wrap;
+  align-items: center;
+  gap: 0.6rem 1.1rem;
+}
+
+.card-todo {
+  border-style: dashed;
+}
+
+.card-todo::before {
+  background: var(--g3);
+}
+
+/* Pill button */
+.launch {
+  display: inline-flex;
+  align-items: center;
+  gap: 0.5rem;
+  padding: 0.4rem 1.1rem 0.4rem 1rem;
+  border-radius: 999px;
+  background: var(--c2);
+  color: #000;
+  font-size: 1rem;
+  font-weight: 500;
+  letter-spacing: 0.12em;
+  text-transform: uppercase;
+  text-decoration: none;
+  transition: background-color 0.18s;
+}
+
+.launch::after {
+  content: "\203A";
+  font-size: 1.2em;
+  line-height: 1;
+}
+
+@media (hover: hover) {
+  .launch:hover {
+    background: var(--c4);
+  }
+}
+
+.launch:active {
+  background: var(--g5);
+}
+
+/* Contact */
+.contact {
+  display: grid;
+  grid-template-columns: repeat(auto-fill, minmax(21rem, 1fr));
+  gap: 1rem;
+  margin: 1.2rem 0 0;
+  padding: 0;
+  list-style: none;
+}
+
+.contact-link {
+  position: relative;
+  display: flex;
+  flex-direction: column;
+  gap: 0.2rem;
+  padding: 1.1rem 1.3rem 1.1rem 1.8rem;
+  border: 2px solid var(--g1);
+  border-radius: var(--radius);
+  background: var(--panel-bg);
+  text-decoration: none;
+  transition: border-color 0.18s, background-color 0.18s;
+}
+
+.contact-link::before {
+  content: "";
+  position: absolute;
+  left: 0.65rem;
+  top: 1rem;
+  bottom: 1rem;
+  width: 0.35rem;
+  border-radius: 999px;
+  background: var(--c2);
+}
+
+.contact-name {
+  color: var(--g5);
+  font-size: 2rem;
+  font-weight: 500;
+  line-height: 1.1;
+  letter-spacing: 0.08em;
+  text-transform: uppercase;
+}
+
+.contact-url {
+  color: var(--c3);
+  font-size: 1.05rem;
+  overflow-wrap: anywhere;
+}
+
+@media (hover: hover) {
+  .contact-link:hover {
+    border-color: var(--c2);
+    background: #0a1720;
+  }
+}
+
+/* 9. Boot screen, toast, effects ----------------------------------------- */
+/* Boot screen (built by script.js; covers the display on the first visit) */
+.boot {
+  position: absolute;
+  inset: 0;
+  z-index: 10;
+  display: grid;
+  place-items: center;
+  padding: 1rem 1rem 1rem var(--inset);
+  background: var(--bg);
+  transition: opacity 0.45s;
+}
+
+.boot.done {
+  opacity: 0;
+  pointer-events: none;
+}
+
+.boot-box {
+  position: relative;
+  display: grid;
+  grid-template-columns: auto auto;
+  align-items: center;
+  gap: 1.1rem 2rem;
+  padding: 1.6rem 2rem 1.4rem;
+  border: 2px solid var(--g3);
+  border-radius: 1.2rem;
+}
+
+.boot-tab {
+  position: absolute;
+  top: -0.75rem;
+  left: 2rem;
+  padding: 0 0.7rem;
+  background: var(--bg);
+  color: var(--g4);
+  font-size: 0.85rem;
+  letter-spacing: 0.24em;
+}
+
+.boot-status {
+  padding: 0.5rem 1.4rem;
+  border: 2px solid var(--c1);
+  border-radius: 0.7rem;
+  color: var(--g5);
+  font-size: 2.6rem;
+  font-weight: 500;
+  letter-spacing: 0.08em;
+}
+
+.boot .ticks {
+  height: 2.4rem;
+}
+
+.boot .ticks i {
+  width: 0.45rem;
+  background: var(--g1) !important;
+  animation: none;
+  transition: background-color 0.12s;
+}
+
+.boot .ticks i.on:nth-child(-n + 4) { background: var(--o1) !important; }
+.boot .ticks i.on { background: var(--g5) !important; }
+.boot .ticks i.on:nth-child(n + 10) { background: var(--c2) !important; }
+
+.boot-meta {
+  grid-column: 1 / -1;
+  display: flex;
+  justify-content: space-between;
+  gap: 2rem;
+  color: var(--g4);
+  font-size: 0.9rem;
+  letter-spacing: 0.2em;
+  text-transform: uppercase;
+}
+
+.boot-meta b {
+  color: var(--c3);
+  font-weight: 500;
+}
+
+/* Frame power-on (script.js adds .powering during the first boot) */
 .powering .seg,
-.powering .rail-fill i {
-  animation: seg-in 0.5s cubic-bezier(0.2, 0.7, 0.2, 1) both;
-  animation-delay: calc(var(--n, 0) * 70ms + 120ms);
+.powering .side-fill i {
+  animation: seg-in 0.55s cubic-bezier(0.2, 0.7, 0.2, 1) both;
+  animation-delay: calc(var(--n, 0) * 70ms + 100ms);
   transform-origin: left center;
 }
 
-.powering .btn,
-.powering .rail-elbow,
-.powering .rail-foot,
+.powering .nav-btn,
+.powering .elbow,
+.powering .foot-elbow,
 .powering .cap {
-  animation: block-in 0.4s ease-out both;
-  animation-delay: calc(var(--n, 0) * 55ms);
+  animation: block-in 0.45s ease-out both;
+  animation-delay: calc(var(--n, 0) * 60ms);
 }
 
-.powering .head > *,
-.powering .prompt {
+.powering .head > * {
   animation: fade-in 0.6s ease-out both;
   animation-delay: 0.5s;
 }
 
-.seg:nth-child(2), .btn:nth-child(2) { --n: 2; }
-.seg:nth-child(3), .btn:nth-child(3) { --n: 3; }
-.seg:nth-child(4), .btn:nth-child(4) { --n: 4; }
-.seg:nth-child(5), .btn:nth-child(5) { --n: 5; }
-.btn:nth-child(6) { --n: 6; }
-.btn:nth-child(7) { --n: 7; }
-.rail-fill i:nth-child(1) { --n: 8; }
-.rail-fill i:nth-child(2),
-.rail-foot { --n: 9; }
+.seg:nth-child(2), .nav-btn:nth-child(2) { --n: 2; }
+.seg:nth-child(3), .nav-btn:nth-child(3) { --n: 3; }
+.seg:nth-child(4), .nav-btn:nth-child(4) { --n: 4; }
+.seg:nth-child(5) { --n: 5; }
+.seg:nth-child(6), .nav-btn:nth-child(6) { --n: 6; }
+.nav-btn:nth-child(7) { --n: 7; }
+.nav-btn:nth-child(8) { --n: 8; }
+.side-fill i:nth-child(1) { --n: 9; }
+.side-fill i:nth-child(2),
+.foot-elbow { --n: 10; }
 
 @keyframes seg-in {
   from {
     opacity: 0;
-    transform: scaleX(0.15);
+    transform: scaleX(0.1);
   }
 }
 
@@ -841,7 +1091,7 @@ button {
   }
   40% {
     opacity: 1;
-    filter: brightness(1.6);
+    filter: brightness(1.7);
   }
 }
 
@@ -851,20 +1101,12 @@ button {
   }
 }
 
-/* `red alert` easter egg: the palette shifts to red for a few seconds */
-.red-alert {
-  --p1: #ff5a4a;
-  --p2: #ff8f80;
-  --p3: #ff6b5a;
-  --p4: #ffa89c;
-  --p5: #e0473a;
-}
-
+/* Red alert pulse */
 .red-alert .seg,
-.red-alert .rail-elbow,
 .red-alert .cap,
-.red-alert .rail-foot,
-.red-alert .rail-fill i {
+.red-alert .elbow,
+.red-alert .foot-elbow,
+.red-alert .side-fill i {
   animation: alert-pulse 0.9s ease-in-out infinite alternate;
 }
 
@@ -872,6 +1114,49 @@ button {
   to {
     opacity: 0.35;
   }
+}
+
+/* Message box for the easter eggs */
+.toast {
+  position: absolute;
+  right: 0.8rem;
+  bottom: 0.8rem;
+  z-index: 6;
+  max-width: min(28rem, calc(100% - var(--inset) - 0.8rem));
+  padding: 0.8rem 1.1rem 0.9rem;
+  border: 2px solid var(--c2);
+  border-radius: var(--radius);
+  background: rgba(0, 0, 0, 0.92);
+  color: var(--g5);
+  font-size: 1.05rem;
+  opacity: 0;
+  visibility: hidden;
+  transform: translateY(0.5rem);
+  transition: opacity 0.25s, transform 0.25s, visibility 0s 0.25s;
+}
+
+.toast.show {
+  opacity: 1;
+  visibility: visible;
+  transform: none;
+  transition: opacity 0.25s, transform 0.25s;
+}
+
+.toast-label {
+  display: block;
+  margin-bottom: 0.2rem;
+  color: var(--o2);
+  font-size: 0.75rem;
+  letter-spacing: 0.24em;
+  text-transform: uppercase;
+}
+
+.toast pre {
+  margin: 0.3rem 0;
+  color: var(--c3);
+  font-family: ui-monospace, Consolas, Menlo, monospace;
+  font-size: 0.85rem;
+  line-height: 1.2;
 }
 
 /* Faint pointer trail (script.js enables it on mouse devices only) */
@@ -893,9 +1178,9 @@ button {
 .matrix {
   position: absolute;
   inset: 0;
+  z-index: 8;
   width: 100%;
   height: 100%;
-  z-index: 2;
   background: var(--bg);
   cursor: pointer;
   transition: opacity 0.4s;
@@ -905,151 +1190,230 @@ button {
   opacity: 0;
 }
 
-/* 11. Phones -------------------------------------------------------------- */
-@media (max-width: 760px) {
-  :root {
-    --rail: 22px;
-    --bar: 10px;
-    --fbar: 18px;
-    --corner: 16px;
-    --inset: calc(var(--corner) + 10px);
+/* 10. Screen shapes ------------------------------------------------------- */
+/* Narrower landscape screens: stack the home columns */
+@media (max-aspect-ratio: 4/3) {
+  .home-grid {
+    grid-template-columns: 1fr;
+    gap: 1.6rem;
+  }
+}
+
+/* Portrait screens (tablets, narrow windows): size by width instead */
+@media (max-aspect-ratio: 1/1) {
+  html {
+    font-size: clamp(13px, min(1.85vw, 1.5vh), 24px);
   }
 
-  .console {
+  .about-grid {
+    grid-template-columns: 1fr;
+  }
+}
+
+/* Phones (portrait): thin rail strip, menu as pill buttons */
+@media (max-width: 700px) {
+  html {
+    font-size: clamp(13px, 3.75vw, 17px);
+  }
+
+  :root {
+    --side: 1.4rem;
+    --bar: 0.65rem;
+    --fbar: 1.1rem;
+    --corner: 1rem;
+    --inset: calc(var(--corner) + 0.7rem);
+  }
+
+  .frame {
     padding:
-      max(10px, env(safe-area-inset-top))
-      max(10px, env(safe-area-inset-right))
-      max(8px, env(safe-area-inset-bottom))
-      max(10px, env(safe-area-inset-left));
-    grid-template-rows: auto var(--bar) 6px var(--bar) auto minmax(0, 1fr) auto var(--fbar);
+      max(0.7rem, env(safe-area-inset-top))
+      max(0.7rem, env(safe-area-inset-right))
+      max(0.6rem, env(safe-area-inset-bottom))
+      max(0.7rem, env(safe-area-inset-left));
+    grid-template-rows: auto var(--bar) 0.4rem var(--bar) auto minmax(0, 1fr) var(--fbar);
     grid-template-areas:
       "cap  head"
       "cap  hbar"
       ".    .   "
-      "rail tbar"
-      "rail cmds"
-      "rail display"
-      "rail prompt"
-      "rail fbar";
+      "side tbar"
+      "side nav"
+      "side display"
+      "side fbar";
   }
 
-  /* The rail becomes a thin coloured strip; its buttons move beside it */
-  .rail {
+  /* The sidebar becomes a thin strip; its menu moves beside it */
+  .side {
     display: contents;
   }
 
-  .rail-elbow {
-    grid-area: rail;
+  .elbow {
+    grid-area: side;
     height: auto;
     padding: 0;
-    border-radius: 22px 0 0 22px / 26px 0 0 26px;
+    border-radius: 1.4rem 0 0 1.4rem / 1.6rem 0 0 1.6rem;
     font-size: 0;
   }
 
-  .rail-fill,
-  .rail-foot {
+  .side-fill,
+  .foot-elbow,
+  .nav-label {
     display: none;
   }
 
-  /* the footer bar now joins the peach rail strip */
   .bar-foot::before {
-    background: radial-gradient(circle var(--corner) at 100% 0, transparent calc(100% - 0.5px), var(--p2) 100%);
+    background: radial-gradient(circle var(--corner) at 100% 0, transparent calc(100% - 0.5px), var(--g2) 100%);
   }
 
   .bar-foot .seg:first-child {
-    --c: var(--p2);
-  }
-
-  .tagline {
-    font-size: 0.95rem;
-    letter-spacing: 0.16em;
+    --c: var(--g2);
   }
 
   .cap {
     padding: 0;
-    border-bottom-left-radius: 22px 26px;
+    border-bottom-left-radius: 1.4rem 1.6rem;
     font-size: 0;
   }
 
   .head {
     flex-direction: column-reverse;
     align-items: stretch;
-    gap: 6px;
-    padding: 0 0 8px var(--inset);
+    gap: 0.4rem;
+    padding: 0 0 0.55rem var(--inset);
+  }
+
+  .head-info {
+    align-items: flex-end;
   }
 
   .title-name {
-    font-size: 2.6rem;
+    font-size: 2.9rem;
   }
 
   .title-sub {
-    margin-right: -0.22em;
-    font-size: 0.75rem;
-    letter-spacing: 0.22em;
+    font-size: 0.78rem;
+    letter-spacing: 0.24em;
+    margin-right: -0.24em;
   }
 
   .readout {
-    grid-template-columns: repeat(2, auto);
-    justify-content: end;
-    gap: 2px 20px;
+    justify-content: flex-end;
+    gap: 0.1rem 1.2rem;
   }
 
   .readout dd {
-    font-size: 0.95rem;
+    font-size: 1rem;
   }
 
-  .ro-wide {
+  .ro-extra,
+  .head .ticks {
     display: none;
   }
 
-  .cmds {
-    grid-area: cmds;
+  .nav {
+    grid-area: nav;
     display: grid;
     grid-template-columns: repeat(4, minmax(0, 1fr));
-    gap: 6px;
-    padding: calc(var(--corner) - 4px) 0 8px var(--inset);
+    gap: 0.35rem;
+    padding: calc(var(--corner) - 0.25rem) 0 0.5rem var(--inset);
   }
 
-  .btn {
-    height: 40px;
+  .nav-btn {
+    height: 2.45rem;
     justify-content: center;
     align-items: center;
-    padding: 0 6px;
+    padding: 0 0.3rem;
     border-radius: 999px;
-    font-size: 1rem;
+    font-size: 0.98rem;
     letter-spacing: 0.06em;
   }
 
-  .btn-num {
+  .nav-num {
     display: none;
   }
 
-  .output {
-    padding: 8px 2px 14px var(--inset);
+  .nav-out {
+    background: var(--g1);
+    box-shadow: inset 0 0 0 2px var(--o1);
   }
 
-  .heading {
+  .nav-out::before {
+    display: none;
+  }
+
+  .panels {
+    padding: 0.5rem 0.1rem 1.2rem var(--inset);
+  }
+
+  .display::before {
+    left: var(--inset);
+  }
+
+  .hello {
+    font-size: 2.9rem;
+  }
+
+  .tagline {
+    font-size: 0.92rem;
+    letter-spacing: 0.18em;
+  }
+
+  .lead {
     font-size: 1.2rem;
   }
 
-  .heading::before {
-    width: 22px;
+  .panel-title {
+    font-size: 2.1rem;
   }
 
-  .row {
-    grid-template-columns: 9ch 1fr;
+  .tiles {
+    grid-template-columns: 1fr 1fr;
+  }
+
+  .tile {
+    min-height: 5.2rem;
+  }
+
+  .cards,
+  .contact {
+    grid-template-columns: 1fr;
+  }
+
+  .contact-name {
+    font-size: 1.6rem;
+  }
+
+  .boot-box {
+    grid-template-columns: 1fr;
+    padding: 1.4rem 1.2rem 1.1rem;
+  }
+
+  .boot-status {
+    font-size: 2rem;
+    text-align: center;
+  }
+
+  .boot-meta {
+    flex-direction: column;
+    gap: 0.2rem;
   }
 
   .bar-text {
     font-size: 0.66rem;
-    letter-spacing: 0.1em;
+    letter-spacing: 0.12em;
   }
 }
 
-/* Phone with the keyboard open: hide the header, one swipeable button row */
-@media (max-width: 760px) and (max-height: 480px) {
-  .console {
-    grid-template-rows: 0 0 0 var(--bar) auto minmax(0, 1fr) auto var(--fbar);
+/* Short landscape screens (phones turned sideways, small windows):
+   drop the header, compact menu */
+@media (max-height: 520px) and (min-width: 701px) {
+  html {
+    font-size: clamp(11px, min(1.3vw, 2.9vh), 16px);
+  }
+
+  .frame {
+    grid-template-rows: 0 0 0 var(--bar) minmax(0, 1fr) var(--fbar);
+    padding-top: max(0.6rem, env(safe-area-inset-top));
+    padding-bottom: max(0.6rem, env(safe-area-inset-bottom));
   }
 
   .cap,
@@ -1058,24 +1422,39 @@ button {
     display: none;
   }
 
-  .cmds {
-    display: flex;
-    flex-direction: row;
-    overflow-x: auto;
-    scrollbar-width: none;
-    padding-bottom: 6px;
+  .elbow {
+    height: 2.4rem;
   }
 
-  .btn {
-    flex: none;
-    height: 34px;
-    padding: 0 14px;
+  .nav-btn {
+    height: 2.2rem;
+  }
+
+  .nav-label,
+  .side-fill i:not(.grow) {
+    display: none;
+  }
+
+  .foot-elbow {
+    height: 2rem;
   }
 }
 
-/* 12. Reduced motion ------------------------------------------------------ */
-/* script.js also checks this setting: no typing animation, no trail,
-   no matrix animation, no power-on, instant output. */
+/* 11. No-JS + reduced motion ---------------------------------------------- */
+.no-js .panel + .panel {
+  margin-top: 3rem;
+  padding-top: 2rem;
+  border-top: 2px solid var(--g1);
+}
+
+.no-js .readout,
+.no-js .ticks,
+.no-js .trail {
+  display: none;
+}
+
+/* script.js also checks this setting: no boot screen, no trail, no matrix,
+   no panel animation. */
 @media (prefers-reduced-motion: reduce) {
   *,
   *::before,

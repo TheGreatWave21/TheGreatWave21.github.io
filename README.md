@@ -1,19 +1,21 @@
 # Personal Website
 
 This repository contains my personal static website, hosted with GitHub Pages.
-The home page is a console-style display: a coloured command panel and
-segmented frame around a terminal. Type a command or tap a panel button.
+The home page is a display-system style interface: a slate frame with a
+sidebar menu that switches panels (Home, About, Projects, Contact) and
+launches Barcona Systems, Flow and GitHub. It scales to fit any screen.
 
 ## Sections
 
-- About, Focus areas, Currently exploring (`about`, `focus`, `now`)
-- Selected work (`projects`)
-- Links (`barcona`, `flow`, `github`, `contact`)
+- Home (`#home`): greeting, quote, quick access
+- About (`#about`): about, focus areas, currently exploring
+- Projects (`#projects`): selected work
+- Contact (`#contact`): GitHub, LinkedIn
 
 ## Editing
 
-- All text and links live in the `CONTENT` object at the top of `script.js`.
-- `index.html` has a `<noscript>` copy of the main text; keep it in sync.
+- All text and links are plain HTML in the `<section>` elements of `index.html`.
+- `script.js` only adds behaviour (panel switching, clock, boot screen, easter eggs).
 - Colours and fonts are the variables at the top of `style.css`.
 - Font: Antonio (SIL Open Font License, `assets/fonts/OFL.txt`), self-hosted.
 - `/barcona-systems/` and `/flow/` are separate project-page repos.

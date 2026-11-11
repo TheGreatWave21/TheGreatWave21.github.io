@@ -1,9 +1,10 @@
 <svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 32 32">
   <rect width="32" height="32" rx="7" fill="#000"/>
-  <!-- console elbow -->
-  <path d="M0 7a7 7 0 0 1 7-7h25v5H9a4 4 0 0 0-4 4v23H0z" fill="#ff9a3c"/>
+  <!-- frame elbow -->
+  <path d="M0 7a7 7 0 0 1 7-7h25v5H9a4 4 0 0 0-4 4v23H0z" fill="#6d748c"/>
+  <rect x="27" y="0" width="5" height="5" fill="#ff6753"/>
   <!-- ">" -->
-  <path d="M11 11l6.5 5.5L11 22" fill="none" stroke="#ffcc99" stroke-width="3" stroke-linecap="round" stroke-linejoin="round"/>
+  <path d="M11 11l6.5 5.5L11 22" fill="none" stroke="#dfe1e8" stroke-width="3" stroke-linecap="round" stroke-linejoin="round"/>
   <!-- "_" -->
-  <path d="M19.5 24h7" fill="none" stroke="#8cb4ff" stroke-width="3" stroke-linecap="round"/>
+  <path d="M19.5 24h7" fill="none" stroke="#37a6d1" stroke-width="3" stroke-linecap="round"/>
 </svg>
