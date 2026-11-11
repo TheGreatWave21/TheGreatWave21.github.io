@@ -1,189 +1,681 @@
+/* ==========================================================================
+   GREATWAVE OS: retro CRT terminal home page
+   Sections:
+     1. Theme tokens (colours, font, glow)   <- edit these to retheme
+     2. Page + terminal panel layout
+     3. CRT effects (scanlines, vignette, sweep)
+     4. Title bar, command bar, chips
+     5. Output area + printed content
+     6. Prompt line + block cursor
+     7. No-JS fallback
+     8. Overlays (mouse trail, matrix)
+     9. Small screens
+    10. Reduced motion
+   ========================================================================== */
+
+/* 1. Theme tokens --------------------------------------------------------- */
 :root {
-  --background: #0b0f0c;
-  --card: #111a14;
-  --text: #f4f7f4;
-  --muted: #9ba89d;
-  --accent: #3f7d52;
-  --accent-bright: #5fa36f;
-  --border: #26382b;
+  --bg: #050a05;        /* page / screen black */
+  --panel: #060d07;     /* terminal panel */
+  --fg: #33ff66;        /* phosphor green, body text   (contrast ~14:1) */
+  --dim: #23b552;       /* secondary text              (contrast ~7:1)  */
+  --bright: #d2ffdc;    /* highlight tone              (contrast ~18:1) */
+  --line: #145c2c;      /* borders and rules */
+  --line-soft: #0d3a1c;
+
+  --glow: 0 0 0.45em rgba(51, 255, 102, 0.38);
+  --glow-bright: 0 0 0.5em rgba(170, 255, 195, 0.55);
+
+  /* No web fonts are downloaded: installed IBM Plex Mono / VT323 are used if
+     present, otherwise the system monospace font. */
+  --font: "IBM Plex Mono", "VT323", ui-monospace, "Cascadia Mono", "SFMono-Regular",
+    Menlo, Consolas, "DejaVu Sans Mono", "Liberation Mono", monospace;
+
+  --pad: clamp(14px, 2.4vw, 28px);
 }
 
-* {
+*,
+*::before,
+*::after {
   box-sizing: border-box;
 }
 
-html {
-  scroll-behavior: smooth;
+/* 2. Page + terminal panel ------------------------------------------------ */
+html,
+body {
+  height: 100%;
+  margin: 0;
+  overflow: hidden;
+  background: var(--bg);
 }
 
 body {
-  margin: 0;
-  min-height: 100vh;
-  font-family: Inter, system-ui, -apple-system, BlinkMacSystemFont, "Segoe UI", sans-serif;
-  background:
-    radial-gradient(circle at top left, rgba(63, 125, 82, 0.18), transparent 35%),
-    radial-gradient(circle at bottom right, rgba(95, 163, 111, 0.10), transparent 35%),
-    var(--background);
-  color: var(--text);
-  line-height: 1.6;
+  color: var(--fg);
+  font-family: var(--font);
+  font-size: clamp(15px, 0.45vw + 13px, 18px);
+  line-height: 1.55;
+  text-shadow: var(--glow);
+  -webkit-text-size-adjust: 100%;
+  text-size-adjust: 100%;
 }
 
-.page {
-  width: min(900px, 92%);
+.screen {
+  position: fixed;
+  top: 0;
+  left: 0;
+  right: 0;
+  height: 100vh;
+  height: 100dvh;
+  display: flex;
+  padding: clamp(10px, 2vw, 28px);
+}
+
+/* script.js keeps --app-h equal to the visible viewport height, so the
+   prompt stays above the on-screen keyboard on phones. */
+.js .screen {
+  height: var(--app-h, 100dvh);
+}
+
+.term {
+  position: relative;
+  flex: 1;
+  min-width: 0;
+  width: 100%;
+  max-width: 1180px;
   margin: 0 auto;
-  padding: 72px 0 40px;
+  display: flex;
+  flex-direction: column;
+  overflow: hidden;
+  background: var(--panel);
+  border: 1px solid var(--line);
+  border-radius: 8px;
+  box-shadow:
+    0 0 0 1px #000,
+    0 0 60px rgba(51, 255, 102, 0.07);
 }
 
-.hero {
-  padding: 72px 0 56px;
+/* 3. CRT effects ---------------------------------------------------------- */
+/* Scanlines + light vignette (static, sits above the text, ignores clicks) */
+.term::before {
+  content: "";
+  position: absolute;
+  inset: 0;
+  z-index: 5;
+  pointer-events: none;
+  background:
+    radial-gradient(ellipse at center, transparent 62%, rgba(0, 0, 0, 0.34) 100%),
+    repeating-linear-gradient(to bottom, transparent 0 2px, rgba(0, 0, 0, 0.16) 2px 3px);
 }
 
-.eyebrow {
-  margin: 0 0 16px;
-  color: var(--accent-bright);
-  font-size: 0.85rem;
-  font-weight: 700;
-  letter-spacing: 0.12em;
+/* Slow, faint refresh band drifting down the screen */
+.term::after {
+  content: "";
+  position: absolute;
+  left: 0;
+  right: 0;
+  top: 0;
+  height: 22%;
+  z-index: 5;
+  pointer-events: none;
+  background: linear-gradient(to bottom, transparent, rgba(51, 255, 102, 0.035), transparent);
+  transform: translateY(-110%);
+  animation: sweep 9s linear infinite;
+}
+
+@keyframes sweep {
+  to {
+    transform: translateY(560%);
+  }
+}
+
+/* 4. Title bar, command bar, chips ---------------------------------------- */
+.titlebar {
+  display: flex;
+  align-items: baseline;
+  justify-content: space-between;
+  gap: 12px;
+  padding: 8px var(--pad);
+  border-bottom: 1px solid var(--line);
+  color: var(--dim);
+  font-size: 0.82em;
+  letter-spacing: 0.06em;
   text-transform: uppercase;
 }
 
-h1 {
+.titlebar-name {
   margin: 0;
-  max-width: 760px;
-  font-size: clamp(3rem, 8vw, 6rem);
-  line-height: 0.95;
-  letter-spacing: -0.06em;
+  font: inherit;
+  color: var(--fg);
 }
 
-.intro {
-  max-width: 680px;
-  margin: 28px 0 0;
-  color: var(--muted);
-  font-size: clamp(1.1rem, 2vw, 1.35rem);
+.titlebar-sys {
+  white-space: nowrap;
 }
 
-.motto {
-  max-width: 620px;
-  margin: 24px 0 0;
-  padding-left: 18px;
-  border-left: 3px solid var(--accent-bright);
-  color: var(--text);
-  font-size: 1rem;
-  font-style: italic;
-  opacity: 0.9;
-}
-
-.links {
+.cmdbar {
   display: flex;
   flex-wrap: wrap;
-  gap: 12px;
-  margin-top: 32px;
+  align-items: center;
+  gap: 8px;
+  padding: 10px var(--pad);
+  border-bottom: 1px solid var(--line);
 }
 
-.links a {
-  color: var(--text);
-  text-decoration: none;
-  padding: 10px 16px;
-  border: 1px solid var(--border);
-  border-radius: 999px;
-  background: rgba(17, 26, 20, 0.72);
-  transition:
-    transform 0.2s ease,
-    border-color 0.2s ease,
-    background 0.2s ease;
+.cmdbar-label {
+  color: var(--dim);
+  margin-right: 2px;
 }
 
-.links a:hover {
-  transform: translateY(-2px);
-  border-color: var(--accent-bright);
-  background: rgba(63, 125, 82, 0.16);
+button {
+  font: inherit;
+  color: inherit;
+  text-shadow: inherit;
 }
 
-.card {
-  margin-bottom: 20px;
-  padding: 26px;
-  border: 1px solid var(--border);
-  border-radius: 24px;
-  background: rgba(17, 26, 20, 0.78);
-  box-shadow: 0 20px 60px rgba(0, 0, 0, 0.28);
-  backdrop-filter: blur(12px);
+.chip {
+  min-height: 36px;
+  padding: 4px 12px;
+  background: transparent;
+  border: 1px solid var(--line);
+  border-radius: 3px;
+  color: var(--fg);
+  cursor: pointer;
+  -webkit-tap-highlight-color: transparent;
+  transition: background-color 0.12s, color 0.12s, border-color 0.12s;
 }
 
-.card:hover {
-  border-color: rgba(95, 163, 111, 0.45);
-  background: rgba(20, 34, 25, 0.86);
+.chip::before {
+  content: "[";
+  color: var(--dim);
+  margin-right: 0.35em;
 }
 
-.grid {
+.chip::after {
+  content: "]";
+  color: var(--dim);
+  margin-left: 0.35em;
+}
+
+.chip:active {
+  background: var(--fg);
+  border-color: var(--fg);
+  color: var(--bg);
+  text-shadow: none;
+}
+
+.chip:active::before,
+.chip:active::after {
+  color: var(--bg);
+}
+
+/* Hover styles only where a real pointer hovers (otherwise they stick
+   after a tap on touch screens). */
+@media (hover: hover) {
+  .chip:hover {
+    background: var(--fg);
+    border-color: var(--fg);
+    color: var(--bg);
+    text-shadow: none;
+  }
+
+  .chip:hover::before,
+  .chip:hover::after {
+    color: var(--bg);
+  }
+}
+
+/* Keyboard focus: the same bright ring on every interactive element */
+:focus-visible {
+  outline: 2px solid var(--bright);
+  outline-offset: 2px;
+}
+
+/* 5. Output area + printed content ---------------------------------------- */
+.output {
+  position: relative; /* offsetParent for scroll-to-command */
+  flex: 1;
+  min-height: 0;
+  overflow-y: auto;
+  overflow-x: hidden;
+  overscroll-behavior: contain;
+  padding: var(--pad);
+  scrollbar-width: thin;
+  scrollbar-color: var(--line) transparent;
+  overflow-wrap: anywhere;
+}
+
+.output:focus-visible {
+  outline-offset: -3px;
+}
+
+.output::selection,
+.output *::selection,
+.prompt-input::selection {
+  background: var(--fg);
+  color: var(--bg);
+  text-shadow: none;
+}
+
+/* One block per command (echo line + its output) */
+.block {
+  margin: 0 0 1.1em;
+  max-width: 78ch;
+}
+
+.block > * {
+  margin: 0;
+  min-height: 1.55em; /* keeps empty lines as spacers */
+  animation: reveal 0.16s both;
+  animation-delay: calc(var(--i, 0) * 20ms);
+}
+
+@keyframes reveal {
+  from {
+    opacity: 0;
+  }
+}
+
+.line {
+  white-space: pre-wrap;
+}
+
+.echo .ps1 {
+  color: var(--dim);
+}
+
+.echo .typed {
+  color: var(--bright);
+  text-shadow: var(--glow-bright);
+}
+
+.heading {
+  margin-top: 0.2em;
+  color: var(--bright);
+  text-shadow: var(--glow-bright);
+  font-size: 1em;
+  font-weight: 700;
+  letter-spacing: 0.08em;
+  text-transform: uppercase;
+}
+
+.heading::before {
+  content: "== ";
+  color: var(--dim);
+}
+
+.heading::after {
+  content: " ==";
+  color: var(--dim);
+}
+
+.dim {
+  color: var(--dim);
+}
+
+.alert {
+  color: var(--bright);
+  text-shadow: var(--glow-bright);
+}
+
+.bullet {
+  padding-left: 2ch;
+  text-indent: -2ch;
+}
+
+.bullet::before {
+  content: "> ";
+  color: var(--dim);
+}
+
+.art {
+  white-space: pre;
+  overflow: hidden;
+  line-height: 1.25;
+  color: var(--fg);
+}
+
+/* Two-column rows (help listing): command on the left, text on the right */
+.row {
   display: grid;
-  grid-template-columns: 1fr 1fr;
-  gap: 20px;
+  grid-template-columns: 11ch 1fr;
+  column-gap: 1ch;
+  align-items: baseline;
 }
 
-h2 {
-  margin: 0 0 14px;
-  font-size: 1.1rem;
-  letter-spacing: -0.02em;
+/* `ls` listing */
+.files {
+  display: flex;
+  flex-wrap: wrap;
+  gap: 0.2em 2.5ch;
 }
 
-p {
+/* Project entries */
+.entry {
+  padding-left: 2ch;
+  border-left: 2px solid var(--line);
+  margin-bottom: 0.9em !important;
+}
+
+.entry-title {
+  display: block;
+  font-weight: 700;
+}
+
+.entry-desc,
+.entry-extra {
+  display: block;
+}
+
+.entry-extra {
+  color: var(--dim);
+}
+
+/* Links and clickable commands inside the output */
+.output a,
+.cmd-link {
+  color: var(--bright);
+  text-shadow: var(--glow-bright);
+  text-decoration: underline;
+  text-decoration-thickness: 1px;
+  text-underline-offset: 0.2em;
+  border-radius: 2px;
+}
+
+.cmd-link {
+  display: inline;
+  padding: 0;
   margin: 0;
-  color: var(--muted);
+  background: none;
+  border: 0;
+  cursor: pointer;
+  text-decoration-style: dotted;
+  -webkit-tap-highlight-color: transparent;
 }
 
-ul {
+.output a:active,
+.cmd-link:active {
+  background: var(--bright);
+  color: var(--bg);
+  text-shadow: none;
+  text-decoration: none;
+}
+
+@media (hover: hover) {
+  .output a:hover,
+  .cmd-link:hover {
+    background: var(--bright);
+    color: var(--bg);
+    text-shadow: none;
+    text-decoration: none;
+  }
+}
+
+/* Greeting banner */
+.headline {
   margin: 0;
-  padding-left: 20px;
-  color: var(--muted);
+  color: var(--bright);
+  font-size: clamp(1.75rem, 5.2vw, 3.1rem);
+  font-weight: 700;
+  line-height: 1.15;
+  letter-spacing: -0.01em;
+  text-shadow:
+    0 0 0.35em rgba(170, 255, 195, 0.5),
+    0 0 1.1em rgba(51, 255, 102, 0.3);
 }
 
-li {
-  margin-bottom: 12px;
+.tagline {
+  margin: 0.5em 0 0.9em;
+  color: var(--fg);
+  letter-spacing: 0.14em;
+  text-transform: uppercase;
 }
 
-li:last-child {
-  margin-bottom: 0;
+.quote {
+  padding-left: 2ch;
+  border-left: 2px solid var(--line);
+  color: var(--dim);
+  font-style: italic;
 }
 
-strong {
-  color: var(--text);
+/* Caret shown at the end of a line while it is being typed out */
+.typing::after {
+  content: "";
+  display: inline-block;
+  width: 0.6em;
+  height: 1em;
+  margin-left: 0.1em;
+  vertical-align: -0.12em;
+  background: currentColor;
 }
 
-footer {
-  padding-top: 24px;
-  color: var(--muted);
-  font-size: 0.9rem;
-  text-align: center;
+/* 6. Prompt line + block cursor ------------------------------------------- */
+.prompt {
+  display: flex;
+  align-items: center;
+  gap: 1ch;
+  padding: 10px var(--pad);
+  border-top: 1px solid var(--line);
 }
 
-footer p {
-  color: var(--muted);
+.prompt:focus-within {
+  border-top-color: var(--fg);
+  background: rgba(51, 255, 102, 0.035);
 }
 
-@media (max-width: 720px) {
-  .page {
-    padding-top: 40px;
+.prompt-label {
+  flex: none;
+  color: var(--dim);
+  white-space: nowrap;
+  cursor: text;
+}
+
+.prompt-field {
+  position: relative;
+  flex: 1;
+  min-width: 0;
+  /* 16px minimum stops iOS Safari from zooming in when the input is focused */
+  font-size: max(16px, 1em);
+  line-height: 1.5;
+}
+
+.prompt-input {
+  display: block;
+  width: 100%;
+  padding: 0;
+  margin: 0;
+  background: transparent;
+  border: 0;
+  outline: 0;
+  border-radius: 0;
+  color: var(--bright);
+  caret-color: transparent; /* replaced by the block cursor below */
+  font: inherit;
+  text-shadow: var(--glow-bright);
+}
+
+/* Block cursor: script.js moves it with --x (in px) */
+.cursor {
+  position: absolute;
+  top: 0.1em;
+  left: 0;
+  width: 1ch;
+  height: 1.3em;
+  pointer-events: none;
+  transform: translateX(var(--x, 0px));
+  border: 1px solid var(--dim); /* hollow while the input is not focused */
+}
+
+.prompt-input:focus ~ .cursor {
+  border-color: var(--fg);
+  background: var(--fg);
+  box-shadow: 0 0 0.6em rgba(51, 255, 102, 0.6);
+  mix-blend-mode: difference; /* keeps the character under the cursor readable */
+  animation: blink 1.06s steps(1) infinite;
+}
+
+.cursor[hidden] {
+  display: none;
+}
+
+@keyframes blink {
+  50% {
+    opacity: 0;
+  }
+}
+
+.statusbar {
+  padding: 6px var(--pad) 8px;
+  border-top: 1px solid var(--line-soft);
+  color: var(--dim);
+  font-size: 0.78em;
+  letter-spacing: 0.04em;
+}
+
+/* 7. No-JS fallback ------------------------------------------------------- */
+.no-js .cmdbar,
+.no-js .prompt,
+.no-js .trail {
+  display: none;
+}
+
+.plain {
+  max-width: 78ch;
+}
+
+.plain h2 {
+  margin: 1.6em 0 0.5em;
+  color: var(--bright);
+  font-size: 1em;
+  letter-spacing: 0.08em;
+  text-transform: uppercase;
+}
+
+.plain p {
+  margin: 0 0 0.8em;
+}
+
+.plain ul {
+  margin: 0;
+  padding-left: 2ch;
+  list-style: "> ";
+}
+
+.plain li {
+  margin-bottom: 0.35em;
+}
+
+.plain .foot {
+  margin-top: 2em;
+  color: var(--dim);
+}
+
+/* 8. Overlays ------------------------------------------------------------- */
+/* Mouse glow + trail canvas (activated by script.js on mouse devices only) */
+.trail {
+  position: fixed;
+  inset: 0;
+  width: 100%;
+  height: 100%;
+  z-index: 20;
+  pointer-events: none;
+  mix-blend-mode: screen;
+  display: none;
+}
+
+.trail.on {
+  display: block;
+}
+
+/* `matrix` easter egg */
+.matrix {
+  position: absolute;
+  inset: 0;
+  width: 100%;
+  height: 100%;
+  z-index: 4; /* below the scanlines, above the text */
+  background: var(--bg);
+  cursor: pointer;
+  transition: opacity 0.4s;
+}
+
+.matrix.out {
+  opacity: 0;
+}
+
+/* 9. Small screens -------------------------------------------------------- */
+@media (max-width: 640px) {
+  .screen {
+    padding: 0;
   }
 
-  .hero {
-    padding: 48px 0 40px;
+  .term {
+    border-radius: 0;
+    border-width: 0;
   }
 
-  .grid {
-    grid-template-columns: 1fr;
+  .titlebar-sys {
+    display: none;
   }
 
-  .card {
-    padding: 22px;
-    border-radius: 20px;
+  .cmdbar {
+    gap: 6px;
+    padding-top: 8px;
+    padding-bottom: 8px;
   }
 
-  .links {
-    gap: 10px;
+  .cmdbar-label {
+    display: none;
   }
 
-  .links a {
-    width: 100%;
-    text-align: center;
+  .chip {
+    min-height: 40px; /* comfortable tap target */
+    padding: 4px 9px;
+  }
+
+  .statusbar {
+    display: none; /* saves a row; the same line is printed in `help` */
+  }
+
+  .row {
+    grid-template-columns: 9ch 1fr;
+  }
+}
+
+/* Very short viewports (phone keyboard open, landscape): drop the title bar */
+@media (max-height: 420px) {
+  .titlebar,
+  .statusbar {
+    display: none;
+  }
+
+  /* one swipeable row of chips, so the output keeps most of the space */
+  .cmdbar {
+    flex-wrap: nowrap;
+    overflow-x: auto;
+    scrollbar-width: none;
+  }
+
+  .chip {
+    flex: none;
+  }
+}
+
+/* 10. Reduced motion ------------------------------------------------------ */
+/* script.js also checks this setting: no typing animation, no mouse trail,
+   no matrix animation, instant output. */
+@media (prefers-reduced-motion: reduce) {
+  *,
+  *::before,
+  *::after {
+    animation: none !important;
+    transition: none !important;
+  }
+
+  .term::after {
+    display: none; /* no moving refresh band */
+  }
+
+  .trail {
+    display: none !important;
   }
 }

@@ -1,103 +1,153 @@
 <!DOCTYPE html>
-<html lang="en">
+<html lang="en" class="no-js">
 <head>
   <meta charset="UTF-8" />
   <meta name="viewport" content="width=device-width, initial-scale=1.0" />
 
-  <title>Kenan | Code & Circuits Guy</title>
+  <title>Kenan | Code &amp; Circuits Guy</title>
   <meta
     name="description"
     content="Personal website of Kenan, a student interested in software, engineering, physics, automation, and applied technology."
   />
 
+  <!-- Open Graph -->
+  <meta property="og:type" content="website" />
+  <meta property="og:url" content="https://thegreatwave21.github.io/" />
+  <meta property="og:title" content="Kenan | Code &amp; Circuits Guy" />
+  <meta
+    property="og:description"
+    content="Software · Engineering · Robotics. A terminal-style home page: type or tap a command to look around."
+  />
+
+  <meta name="theme-color" content="#050a05" />
+  <meta name="color-scheme" content="dark" />
+  <link rel="icon" type="image/svg+xml" href="assets/favicon.svg" />
+
+  <!-- Marks the page as JS-capable before first paint (CSS hides the
+       interactive parts when this class is missing). -->
+  <script>document.documentElement.className = "js";</script>
+
   <link rel="stylesheet" href="style.css" />
+  <script src="script.js" defer></script>
 </head>
 
 <body>
-  <main class="page">
-    <section class="hero">
-      <p class="eyebrow">Software · Engineering · Robotics</p>
+  <div class="screen">
+    <main class="term" id="term">
 
-      <h1>Heya, I’m Kenan.</h1>
+      <!-- Title bar -->
+      <header class="titlebar">
+        <h1 class="titlebar-name">Kenan <span aria-hidden="true">//</span> Code &amp; Circuits Guy</h1>
+        <span class="titlebar-sys" aria-hidden="true">GREATWAVE OS v1.0</span>
+      </header>
 
-      <p class="intro">
-        I’m a student interested in software, engineering, physics,
-        automation, and applied technology.
-      </p>
+      <!-- Always-visible command bar: every chip runs the command as if typed -->
+      <nav class="cmdbar" aria-label="Terminal commands">
+        <span class="cmdbar-label" aria-hidden="true">run:</span>
+        <button type="button" class="chip" data-cmd="about">about</button>
+        <button type="button" class="chip" data-cmd="projects">projects</button>
+        <button type="button" class="chip" data-cmd="barcona">barcona</button>
+        <button type="button" class="chip" data-cmd="flow">flow</button>
+        <button type="button" class="chip" data-cmd="github">github</button>
+        <button type="button" class="chip" data-cmd="contact">contact</button>
+        <button type="button" class="chip" data-cmd="help">help</button>
+      </nav>
 
-      <p class="motto">
-        “Force without power falls to its own weight.”
-      </p>
+      <!-- Scrollable terminal output. script.js prints real text nodes in here. -->
+      <div class="output" id="output" role="log" aria-live="polite" aria-label="Terminal output" tabindex="0">
 
-      <div class="links">
-        <a href="https://github.com/TheGreatWave21/TheGreatWave21" target="_blank" rel="noopener noreferrer">
-          GitHub
-        </a>
-        <a href="https://barconasystems.de" target="_blank" rel="noopener noreferrer">
-          Barcona Systems
-        </a>
-        <a href="https://www.linkedin.com/in/kenan-busch-barcona-systems/" target="blank" rel="noopener noreferrer">
-          LinkedIn
-        </a> 
-        <a href="mailto:info@barconasystems.de">
-          Email
-        </a>
+        <!-- ============================================================
+             NO-JS FALLBACK
+             Shown only when JavaScript is off. The copy here mirrors the
+             CONTENT object at the top of script.js; if you change the
+             wording there, update it here too.
+             ============================================================ -->
+        <noscript>
+          <div class="plain">
+            <p class="headline">Heya, I’m Kenan.</p>
+            <p class="tagline">Software · Engineering · Robotics</p>
+            <p>
+              I’m a student interested in software, engineering, physics,
+              automation, and applied technology.
+            </p>
+            <p class="quote">“Force without power falls to its own weight.”</p>
+
+            <h2>Links</h2>
+            <ul>
+              <li><a href="/barcona-systems/">Barcona Systems</a> (official site: <a href="https://barconasystems.de" target="_blank" rel="noopener noreferrer">barconasystems.de</a>)</li>
+              <!-- TODO(Kenan): adjust the Flow wording (also in script.js) -->
+              <li><a href="/flow/">Flow</a>: a free focus timer for getting into deep work</li>
+              <li><a href="https://github.com/TheGreatWave21" target="_blank" rel="noopener noreferrer">GitHub</a></li>
+              <li><a href="https://www.linkedin.com/in/kenan-busch-barcona-systems/" target="_blank" rel="noopener noreferrer">LinkedIn</a></li>
+            </ul>
+
+            <h2>About</h2>
+            <p>
+              I like turning ideas into working systems, especially where
+              AI-driven automation, technical problem-solving, and practical
+              engineering meet. I founded Barcona Systems to build software and
+              systems for logistics that connect research, experimentation,
+              and real-world use.
+            </p>
+
+            <h2>Focus Areas</h2>
+            <ul>
+              <li>Software development</li>
+              <li>Automation</li>
+              <li>Engineering systems</li>
+              <li>Robotics</li>
+              <li>Research-driven projects</li>
+            </ul>
+
+            <h2>Selected Work</h2>
+            <ul>
+              <li><a href="/barcona-systems/">Barcona Systems</a>: software, automation, and engineering systems for logistics.</li>
+              <li><a href="/flow/">Flow</a>: a free focus timer for getting into deep work.</li>
+              <li><a href="https://github.com/TheGreatWave21" target="_blank" rel="noopener noreferrer">GitHub</a>: coding projects, experiments, and technical notes.</li>
+              <!-- TODO(Kenan): list specific technical projects (also in script.js) -->
+              <li>Technical Projects: personal experiments in automation, security systems, and applied technology. Write-ups to follow.</li>
+            </ul>
+
+            <h2>Currently Exploring</h2>
+            <p>
+              Sharpening my programming, building practical systems, and
+              learning how research can be applied to real-world technical
+              problems. I’m also digging deeper into physics.
+            </p>
+
+            <p class="foot">Built with HTML, CSS, JS, and GitHub Pages.</p>
+          </div>
+        </noscript>
       </div>
-    </section>
 
-    <section class="card">
-      <h2>About</h2>
-      <p>
-        I enjoy turning ideas into working systems, especially projects involving
-        automation using AI, technical problem-solving, and practical engineering. I
-        founded Barcona Systems as a way to explore software and systems connected to Logistics, that
-        connect research, experimentation, and real-world use.
-      </p>
-    </section>
+      <!-- Prompt line -->
+      <form class="prompt" id="prompt" autocomplete="off">
+        <label class="prompt-label" for="cmd">kenan@greatwave:~$</label>
+        <div class="prompt-field">
+          <input
+            id="cmd"
+            class="prompt-input"
+            type="text"
+            name="cmd"
+            maxlength="120"
+            autocomplete="off"
+            autocapitalize="none"
+            autocorrect="off"
+            spellcheck="false"
+            enterkeyhint="go"
+            aria-label="Terminal command input. Type help and press Enter for a list of commands."
+          />
+          <span class="cursor" id="cursor" aria-hidden="true"></span>
+        </div>
+      </form>
 
-    <section class="grid">
-      <article class="card">
-        <h2>Focus Areas</h2>
-        <ul>
-          <li>Software development</li>
-          <li>Automation</li>
-          <li>Engineering systems</li>
-          <li>Robotics</li>
-          <li>Research-driven projects</li>
-        </ul>
-      </article>
+      <footer class="statusbar">
+        <span>Built with HTML, CSS, JS, and GitHub Pages.</span>
+      </footer>
+    </main>
+  </div>
 
-      <article class="card">
-        <h2>Selected Work</h2>
-        <ul>
-          <li>
-            <strong>Barcona Systems</strong><br />
-            Software, automation, and engineering-related systems.
-          </li>
-          <li>
-            <strong>Technical Projects</strong><br />
-            Personal experiments in automation, security systems, and applied technology.
-          </li>
-          <li>
-            <strong>GitHub</strong><br />
-            Coding projects, experiments, and technical notes.
-          </li>
-        </ul>
-      </article>
-    </section>
-
-    <section class="card">
-      <h2>Currently Exploring</h2>
-      <p>
-        I’m currently focused on improving my skills in programming, building
-        practical systems, and understanding how research can be applied to
-        real-world technical problems. I am also trying to learn more about Physics and expand my knowledge. 
-      </p>
-    </section>
-
-    <footer>
-      <p>Built with HTML, CSS, and GitHub Pages.</p>
-    </footer>
-  </main>
+  <!-- Mouse glow + trail (decorative; only activated on mouse devices) -->
+  <canvas class="trail" id="trail" aria-hidden="true"></canvas>
 </body>
 </html>
