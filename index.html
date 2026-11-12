@@ -1,8 +1,8 @@
 <!DOCTYPE html>
-<html lang="en" class="no-js">
+<html lang="en">
 <head>
   <meta charset="UTF-8" />
-  <meta name="viewport" content="width=device-width, initial-scale=1.0, viewport-fit=cover" />
+  <meta name="viewport" content="width=device-width, initial-scale=1.0" />
 
   <title>Kenan | Code &amp; Circuits Guy</title>
   <meta
@@ -16,234 +16,234 @@
   <meta property="og:title" content="Kenan | Code &amp; Circuits Guy" />
   <meta
     property="og:description"
-    content="Software · Engineering · Robotics. Kenan's home page: about, projects, Barcona Systems, Flow, and contact."
+    content="Software · Engineering · Robotics. Founder of Barcona Systems, maker of Flow, and always building something."
   />
 
-  <meta name="theme-color" content="#000000" />
+  <meta name="theme-color" content="#0b0f0c" />
   <meta name="color-scheme" content="dark" />
-  <link rel="icon" type="image/svg+xml" href="assets/favicon.svg" />
-  <link rel="preload" href="assets/fonts/Antonio.ttf" as="font" type="font/ttf" crossorigin />
+  <link rel="icon" type="image/svg+xml" href="assets/favicon.svg?v=6" />
 
-  <!-- Marks the page as JS-capable before first paint. Without JS every
-       section is shown one after another and the menu links scroll to them. -->
-  <script>document.documentElement.className = "js";</script>
+  <!-- Lets the CSS know JS is running (used for the entrance animations).
+       Without JS everything is simply visible. -->
+  <script>document.documentElement.classList.add("js");</script>
 
-  <link rel="stylesheet" href="style.css?v=5" />
-  <script src="script.js?v=5" defer></script>
+  <link rel="stylesheet" href="style.css?v=6" />
+  <script src="script.js?v=6" defer></script>
 </head>
 
 <body>
+  <a class="skip" href="#main">Skip to content</a>
+
   <!-- ======================================================================
-       Frame. Grid areas are set in style.css (section 3).
-       Everything marked aria-hidden="true" is decoration.
-
-       EDITING THE TEXT: all content is plain HTML in the <section> elements
-       inside <main> below, one section per menu entry.
+       HEADER
        ====================================================================== -->
-  <div class="frame" id="frame">
-
-    <!-- Outer bracket + segmented top/bottom bars -->
-    <div class="bracket" aria-hidden="true"></div>
-    <div class="bar bar-top" aria-hidden="true">
-      <i class="seg f2 w-sm"></i><i class="seg f1 grow"></i><i class="seg c w-xs"></i><i class="seg f2 w-md"></i><i class="seg s w-xxs"></i><i class="seg f1 w-sm end"></i>
-    </div>
-
-    <!-- Sidebar: inner bracket with the menu chips -->
-    <aside class="side">
-      <div class="side-cap side-cap-top" aria-hidden="true"><span>GW&#8209;21</span></div>
-
-      <nav class="nav" aria-label="Site">
-        <!-- Panels inside this page -->
-        <a class="nav-btn" href="#home" data-panel="home"><span class="nav-num" aria-hidden="true">01</span>Home</a>
-        <a class="nav-btn" href="#about" data-panel="about"><span class="nav-num" aria-hidden="true">02</span>About</a>
-        <a class="nav-btn" href="#projects" data-panel="projects"><span class="nav-num" aria-hidden="true">03</span>Projects</a>
-        <a class="nav-btn" href="#contact" data-panel="contact"><span class="nav-num" aria-hidden="true">04</span>Contact</a>
-
-        <!-- Links to other pages -->
-        <span class="nav-label" aria-hidden="true">Launch</span>
-        <a class="nav-btn nav-out" href="/barcona-systems/"><span class="nav-num" aria-hidden="true">05</span>Barcona</a>
-        <a class="nav-btn nav-out" href="/flow/"><span class="nav-num" aria-hidden="true">06</span>Flow</a>
-        <a class="nav-btn nav-out" href="https://github.com/TheGreatWave21" target="_blank" rel="noopener noreferrer"><span class="nav-num" aria-hidden="true">07</span>GitHub<span class="sr-only"> (opens in a new tab)</span></a>
+  <header class="topbar">
+    <div class="topbar-inner">
+      <a class="brand" href="#top" aria-label="Kenan, back to top">
+        <span class="brand-mark" aria-hidden="true">K</span>
+        <span class="brand-name">Kenan</span>
+      </a>
+      <nav class="nav" aria-label="Sections">
+        <a href="#about">About</a>
+        <a href="#work">Work</a>
+        <a href="#now">Now</a>
+        <a href="#contact">Contact</a>
       </nav>
+    </div>
+  </header>
 
-      <div class="side-rail" aria-hidden="true">
-        <i></i><i class="s"></i><i></i><i class="c"></i><i></i><i class="w"></i><i class="s"></i><i></i><i class="c"></i><i class="w"></i><i></i><i class="s"></i><i></i><i class="c"></i><i></i><i class="w"></i>
+  <main class="page" id="main">
+
+    <!-- ====================================================================
+         HERO
+         ==================================================================== -->
+    <section class="hero" id="top" aria-labelledby="hero-title">
+      <!-- Decorative circuit traces; small pulses travel along them -->
+      <svg class="circuit" viewBox="0 0 560 420" aria-hidden="true" focusable="false">
+        <g class="traces">
+          <path id="t1" d="M10 70 H170 L210 110 H330 L360 80 H550" />
+          <path id="t2" d="M40 160 H120 L160 200 H290 L330 240 H470 L500 210 H550" />
+          <path id="t3" d="M10 280 H90 L130 320 H250 L280 290 H400 L440 330 H550" />
+          <path id="t4" d="M220 10 V60 L250 90 V180 L280 210 V380 L300 400" />
+          <path id="t5" d="M420 20 V130 L450 160 V260 L420 290 V410" />
+        </g>
+        <g class="pulses">
+          <path class="pulse p1" d="M10 70 H170 L210 110 H330 L360 80 H550" pathLength="100" />
+          <path class="pulse p2" d="M40 160 H120 L160 200 H290 L330 240 H470 L500 210 H550" pathLength="100" />
+          <path class="pulse p3" d="M10 280 H90 L130 320 H250 L280 290 H400 L440 330 H550" pathLength="100" />
+          <path class="pulse p4" d="M220 10 V60 L250 90 V180 L280 210 V380 L300 400" pathLength="100" />
+          <path class="pulse p5" d="M420 20 V130 L450 160 V260 L420 290 V410" pathLength="100" />
+        </g>
+        <g class="nodes">
+          <circle cx="170" cy="70" r="4" /><circle cx="330" cy="110" r="4" />
+          <circle cx="160" cy="200" r="4" /><circle cx="470" cy="240" r="4" />
+          <circle cx="250" cy="320" r="4" /><circle cx="400" cy="290" r="4" />
+          <circle cx="250" cy="180" r="4" /><circle cx="450" cy="160" r="4" />
+          <rect class="chip" x="236" y="126" width="64" height="44" rx="6" />
+          <rect class="chip" x="350" y="168" width="44" height="32" rx="5" />
+        </g>
+      </svg>
+
+      <div class="hero-text">
+        <p class="eyebrow reveal">Software · Engineering · Robotics</p>
+        <h1 class="hero-title reveal" id="hero-title">Heya, I’m <span class="accent">Kenan.</span></h1>
+        <p class="intro reveal">
+          I’m a student interested in software, engineering, physics,
+          automation, and applied technology.
+        </p>
+        <blockquote class="motto reveal">
+          <p>“Force without power falls to its own weight.”</p>
+        </blockquote>
+
+        <div class="links reveal">
+          <a class="btn btn-primary" href="/barcona-systems/">Barcona Systems</a>
+          <a class="btn" href="/flow/">Flow</a>
+          <a class="btn" href="https://github.com/TheGreatWave21" target="_blank" rel="noopener noreferrer">GitHub<span class="sr-only"> (opens in a new tab)</span></a>
+          <a class="btn" href="https://www.linkedin.com/in/kenan-busch-barcona-systems/" target="_blank" rel="noopener noreferrer">LinkedIn<span class="sr-only"> (opens in a new tab)</span></a>
+        </div>
       </div>
-      <div class="side-cap side-cap-bot" aria-hidden="true"><span>47&#8209;09</span></div>
-    </aside>
+    </section>
 
-    <!-- Display -->
-    <main class="display" id="display">
-      <header class="display-head">
-        <span class="panel-tag" id="panel-tag" aria-hidden="true">01 · Home</span>
-        <span class="head-rule" aria-hidden="true"><i></i><i></i><i></i></span>
-        <h1 class="title">Kenan <span class="title-sub">· Code &amp; Circuits Guy</span></h1>
-      </header>
+    <!-- ====================================================================
+         ABOUT + FOCUS AREAS
+         ==================================================================== -->
+    <section class="section" id="about" aria-labelledby="about-title">
+      <p class="section-index reveal" aria-hidden="true">01</p>
+      <h2 class="section-title reveal" id="about-title">About</h2>
 
-      <div class="panels" id="panels">
+      <div class="card about-card reveal">
+        <p class="about-lead">
+          I like turning ideas into working systems, especially where
+          AI-driven automation, technical problem-solving, and practical
+          engineering meet.
+        </p>
+        <p>
+          I founded <a href="/barcona-systems/">Barcona Systems</a> to build
+          software and systems for logistics that connect research,
+          experimentation, and real-world use.
+        </p>
+      </div>
 
-        <!-- ==== HOME ====================================================== -->
-        <section class="panel panel-home" id="home" aria-labelledby="home-h" tabindex="-1">
-          <div class="home-grid">
-            <div class="home-main">
-              <h2 class="hello" id="home-h">Heya, I’m Kenan.</h2>
-              <p class="tagline">Software · Engineering · Robotics</p>
-              <p class="lead">
-                I’m a student interested in software, engineering, physics,
-                automation, and applied technology.
-              </p>
-              <blockquote class="quote">
-                <p>“Force without power falls to its own weight.”</p>
-              </blockquote>
-            </div>
+      <h3 class="sub-title reveal">Focus areas</h3>
+      <ul class="focus">
+        <li class="focus-item reveal">
+          <svg viewBox="0 0 24 24" aria-hidden="true"><path d="M8 6 2 12l6 6M16 6l6 6-6 6" /></svg>
+          Software development
+        </li>
+        <li class="focus-item reveal">
+          <svg viewBox="0 0 24 24" aria-hidden="true"><path d="M4 12a8 8 0 0 1 14-5.3M18 2v5h-5M20 12a8 8 0 0 1-14 5.3M6 22v-5h5" /></svg>
+          Automation
+        </li>
+        <li class="focus-item reveal">
+          <svg viewBox="0 0 24 24" aria-hidden="true"><rect x="7" y="7" width="10" height="10" rx="1.5" /><path d="M10 7V3M14 7V3M10 21v-4M14 21v-4M7 10H3M7 14H3M21 10h-4M21 14h-4" /></svg>
+          Engineering systems
+        </li>
+        <li class="focus-item reveal">
+          <svg viewBox="0 0 24 24" aria-hidden="true"><rect x="5" y="8" width="14" height="11" rx="3" /><path d="M12 8V4M10 4h4M9.5 13h.01M14.5 13h.01M2 13v2M22 13v2" /></svg>
+          Robotics
+        </li>
+        <li class="focus-item reveal">
+          <svg viewBox="0 0 24 24" aria-hidden="true"><path d="M9 3h6M10 3v6L4.5 18.5A1.7 1.7 0 0 0 6 21h12a1.7 1.7 0 0 0 1.5-2.5L14 9V3M7 15h10" /></svg>
+          Research-driven projects
+        </li>
+      </ul>
+    </section>
 
-            <div class="home-side">
-              <p class="box-label">Quick access</p>
-              <ul class="tiles">
-                <li><a class="tile" href="#about" data-panel="about"><span class="tile-code" aria-hidden="true">02</span><span class="tile-name">About</span><span class="tile-text">Who I am and what I focus on</span></a></li>
-                <li><a class="tile" href="#projects" data-panel="projects"><span class="tile-code" aria-hidden="true">03</span><span class="tile-name">Projects</span><span class="tile-text">Selected work</span></a></li>
-                <li><a class="tile tile-out" href="/barcona-systems/"><span class="tile-code" aria-hidden="true">05</span><span class="tile-name">Barcona Systems</span><span class="tile-text">Software for logistics</span></a></li>
-                <!-- TODO(Kenan): adjust the Flow wording here and in the Projects section -->
-                <li><a class="tile tile-out" href="/flow/"><span class="tile-code" aria-hidden="true">06</span><span class="tile-name">Flow</span><span class="tile-text">A free focus timer</span></a></li>
-              </ul>
-            </div>
+    <!-- ====================================================================
+         SELECTED WORK
+         ==================================================================== -->
+    <section class="section" id="work" aria-labelledby="work-title">
+      <p class="section-index reveal" aria-hidden="true">02</p>
+      <h2 class="section-title reveal" id="work-title">Selected work</h2>
+
+      <ul class="projects">
+        <li class="project reveal">
+          <div class="project-top">
+            <span class="tag">Company</span>
+            <svg class="arrow" viewBox="0 0 24 24" aria-hidden="true"><path d="M7 17 17 7M9 7h8v8" /></svg>
           </div>
-        </section>
+          <h3 class="project-title"><a class="stretched" href="/barcona-systems/">Barcona Systems</a></h3>
+          <p>Software, automation, and engineering systems for logistics.</p>
+          <p class="project-meta">
+            Official site:
+            <a class="above" href="https://barconasystems.de" target="_blank" rel="noopener noreferrer">barconasystems.de<span class="sr-only"> (opens in a new tab)</span></a>
+          </p>
+        </li>
 
-        <!-- ==== ABOUT ===================================================== -->
-        <section class="panel" id="about" aria-labelledby="about-h" tabindex="-1">
-          <h2 class="panel-title" id="about-h">About</h2>
-          <div class="about-grid">
-            <div class="box">
-              <p class="lead">
-                I like turning ideas into working systems, especially where
-                AI-driven automation, technical problem-solving, and practical
-                engineering meet.
-              </p>
-              <p>
-                I founded <a href="/barcona-systems/">Barcona Systems</a> to build
-                software and systems for logistics that connect research,
-                experimentation, and real-world use.
-              </p>
-            </div>
-
-            <div class="box">
-              <h3 class="box-label">Focus areas</h3>
-              <ul class="chips">
-                <li>Software development</li>
-                <li>Automation</li>
-                <li>Engineering systems</li>
-                <li>Robotics</li>
-                <li>Research-driven projects</li>
-              </ul>
-            </div>
-
-            <div class="box box-wide">
-              <h3 class="box-label">Currently exploring</h3>
-              <p>
-                Sharpening my programming, building practical systems, and
-                learning how research can be applied to real-world technical
-                problems. I’m also digging deeper into physics.
-              </p>
-            </div>
+        <li class="project reveal">
+          <div class="project-top">
+            <span class="tag">Tool</span>
+            <svg class="arrow" viewBox="0 0 24 24" aria-hidden="true"><path d="M7 17 17 7M9 7h8v8" /></svg>
           </div>
-        </section>
+          <h3 class="project-title"><a class="stretched" href="/flow/">Flow</a></h3>
+          <!-- TODO(Kenan): adjust the Flow wording -->
+          <p>A free focus timer for getting into deep work, built as a no-cost alternative to the Flow app.</p>
+          <p class="project-meta">Free · runs in the browser</p>
+        </li>
 
-        <!-- ==== PROJECTS ================================================== -->
-        <section class="panel" id="projects" aria-labelledby="projects-h" tabindex="-1">
-          <h2 class="panel-title" id="projects-h">Selected work</h2>
-          <ul class="cards">
-            <li class="card">
-              <p class="card-code" aria-hidden="true">P·01</p>
-              <h3 class="card-title">Barcona Systems</h3>
-              <p>Software, automation, and engineering systems for logistics.</p>
-              <p class="card-links">
-                <a class="launch" href="/barcona-systems/">Open Barcona Systems</a>
-                <a href="https://barconasystems.de" target="_blank" rel="noopener noreferrer">official site: barconasystems.de<span class="sr-only"> (opens in a new tab)</span></a>
-              </p>
-            </li>
-            <li class="card">
-              <p class="card-code" aria-hidden="true">P·02</p>
-              <h3 class="card-title">Flow</h3>
-              <!-- TODO(Kenan): adjust the Flow wording -->
-              <p>A free focus timer for getting into deep work, built as a no-cost alternative to the Flow app.</p>
-              <p class="card-links">
-                <a class="launch" href="/flow/">Open Flow</a>
-              </p>
-            </li>
-            <li class="card">
-              <p class="card-code" aria-hidden="true">P·03</p>
-              <h3 class="card-title">GitHub</h3>
-              <p>Coding projects, experiments, and technical notes.</p>
-              <p class="card-links">
-                <a class="launch" href="https://github.com/TheGreatWave21" target="_blank" rel="noopener noreferrer">Open GitHub<span class="sr-only"> (opens in a new tab)</span></a>
-              </p>
-            </li>
-            <li class="card card-todo">
-              <p class="card-code" aria-hidden="true">P·04</p>
-              <h3 class="card-title">Technical projects</h3>
-              <!-- TODO(Kenan): replace this placeholder with specific projects.
-                   Copy one of the <li class="card"> blocks above for each. -->
-              <p>Personal experiments in automation, security systems, and applied technology.</p>
-              <p class="muted">Write-ups to follow; nothing published here yet.</p>
-            </li>
-          </ul>
-        </section>
+        <li class="project reveal">
+          <div class="project-top">
+            <span class="tag">Code</span>
+            <svg class="arrow" viewBox="0 0 24 24" aria-hidden="true"><path d="M7 17 17 7M9 7h8v8" /></svg>
+          </div>
+          <h3 class="project-title"><a class="stretched" href="https://github.com/TheGreatWave21" target="_blank" rel="noopener noreferrer">GitHub<span class="sr-only"> (opens in a new tab)</span></a></h3>
+          <p>Coding projects, experiments, and technical notes.</p>
+          <p class="project-meta">github.com/TheGreatWave21</p>
+        </li>
 
-        <!-- ==== CONTACT =================================================== -->
-        <section class="panel" id="contact" aria-labelledby="contact-h" tabindex="-1">
-          <h2 class="panel-title" id="contact-h">Contact</h2>
-          <p class="lead">The best ways to reach me or see what I’m working on.</p>
-          <ul class="contact">
-            <li>
-              <a class="contact-link" href="https://github.com/TheGreatWave21" target="_blank" rel="noopener noreferrer">
-                <span class="contact-name">GitHub</span>
-                <span class="contact-url">github.com/TheGreatWave21</span>
-                <span class="sr-only"> (opens in a new tab)</span>
-              </a>
-            </li>
-            <li>
-              <a class="contact-link" href="https://www.linkedin.com/in/kenan-busch-barcona-systems/" target="_blank" rel="noopener noreferrer">
-                <span class="contact-name">LinkedIn</span>
-                <span class="contact-url">linkedin.com/in/kenan-busch-barcona-systems</span>
-                <span class="sr-only"> (opens in a new tab)</span>
-              </a>
-            </li>
-          </ul>
-        </section>
+        <li class="project project-soon reveal">
+          <div class="project-top">
+            <span class="tag">Experiments</span>
+            <span class="soon">Coming soon</span>
+          </div>
+          <h3 class="project-title">Technical projects</h3>
+          <!-- TODO(Kenan): replace this placeholder with specific projects.
+               Copy one of the <li class="project"> blocks above for each. -->
+          <p>Personal experiments in automation, security systems, and applied technology.</p>
+          <p class="project-meta">Write-ups to follow.</p>
+        </li>
+      </ul>
+    </section>
+
+    <!-- ====================================================================
+         CURRENTLY EXPLORING
+         ==================================================================== -->
+    <section class="section" id="now" aria-labelledby="now-title">
+      <p class="section-index reveal" aria-hidden="true">03</p>
+      <h2 class="section-title reveal" id="now-title">Currently exploring</h2>
+
+      <div class="card now-card reveal">
+        <span class="live" aria-hidden="true"></span>
+        <p>
+          Sharpening my programming, building practical systems, and
+          learning how research can be applied to real-world technical
+          problems. I’m also digging deeper into physics.
+        </p>
       </div>
+    </section>
 
-      <!-- Decorative progress rows along the bottom of the display -->
-      <div class="display-foot" aria-hidden="true">
-        <span class="foot-tag">SYS&#8209;A</span><span class="track"><i style="--w: 62%"></i></span>
-        <span class="foot-tag">SYS&#8209;B</span><span class="track track-s"><i style="--w: 38%"></i></span>
-        <span class="foot-tag">NET</span><span class="track"><i style="--w: 81%"></i></span>
-        <span class="foot-tag">PWR</span><span class="track"><i style="--w: 54%"></i></span>
+    <!-- ====================================================================
+         CONTACT
+         ==================================================================== -->
+    <section class="section" id="contact" aria-labelledby="contact-title">
+      <p class="section-index reveal" aria-hidden="true">04</p>
+      <div class="card contact-card reveal">
+        <h2 class="contact-title" id="contact-title">Let’s build something.</h2>
+        <p>The best ways to reach me or see what I’m working on.</p>
+        <div class="links">
+          <a class="btn btn-primary" href="https://www.linkedin.com/in/kenan-busch-barcona-systems/" target="_blank" rel="noopener noreferrer">LinkedIn<span class="sr-only"> (opens in a new tab)</span></a>
+          <a class="btn" href="https://github.com/TheGreatWave21" target="_blank" rel="noopener noreferrer">GitHub<span class="sr-only"> (opens in a new tab)</span></a>
+        </div>
       </div>
+    </section>
+  </main>
 
-      <!-- Small message box used by the hidden easter eggs -->
-      <div class="toast" id="toast" role="status" aria-live="polite"></div>
-    </main>
+  <footer class="footer">
+    <p>Built with HTML, CSS, JS, and GitHub Pages.</p>
+    <p class="footer-hint">There are a few hidden commands. Try typing <kbd>whoami</kbd>.</p>
+  </footer>
 
-    <!-- Right status column: live readouts (wide screens) -->
-    <aside class="status" aria-hidden="true">
-      <div class="stat"><span>Date</span><b id="ro-date">----.--.--</b></div>
-      <div class="stat stat-c"><span>Local</span><b id="ro-time">--:--:--</b></div>
-      <div class="stat"><span>Session</span><b id="ro-up">00:00:00</b></div>
-      <div class="stat stat-s"><span>Panel</span><b id="ro-panel">01</b></div>
-      <div class="ticks" id="head-ticks"></div>
-      <div class="status-chips">
-        <i class="s"></i><i></i><i class="c"></i><i></i><i></i><i class="s"></i><i></i><i class="c"></i><i></i><i class="s"></i><i></i><i></i>
-      </div>
-      <p class="status-note">Built with HTML, CSS, JS, and GitHub Pages</p>
-    </aside>
-
-    <footer class="bar bar-bot" aria-hidden="true">
-      <i class="seg f1 w-md"></i><i class="seg s w-xxs"></i><i class="seg f2 grow"></i><i class="seg c w-xs"></i><i class="seg f1 w-sm end"></i>
-    </footer>
-  </div>
-
-  <!-- Faint pointer trail (decorative; mouse devices only) -->
-  <canvas class="trail" id="trail" aria-hidden="true"></canvas>
+  <!-- Message box for the hidden commands -->
+  <div class="toast" id="toast" role="status" aria-live="polite"></div>
 </body>
 </html>
