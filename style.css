@@ -1,40 +1,62 @@
 /* ==========================================================================
    Kenan | Code & Circuits Guy
-   Dark green, calm cards, one big headline. Built on the original design.
+   Modern dark-green layout with an 8-bit layer: pixel font for headings,
+   notched pixel borders, chunky press-down buttons, pixel icons, a pixel
+   wave, a block progress bar and a small pixel robot.
 
    Sections:
-     1. Tokens                  <- colours, fonts, sizes
+     1. Tokens                  <- colours, fonts, pixel size
      2. Base
-     3. Header
-     4. Hero + wave
-     5. Sections + cards
-     6. Focus areas
-     7. Projects
-     8. Now + contact
-     9. Footer, toast, hidden effects
-    10. Entrance animations
-    11. Small screens + reduced motion
+     3. Pixel borders (shared)
+     4. Header + progress bar
+     5. Hero + wave
+     6. Sections + cards
+     7. Focus areas + pixel icons
+     8. Projects
+     9. Now + contact + mascot
+    10. Footer, toast, overlays, game
+    11. Entrance animations
+    12. Small screens + reduced motion
    ========================================================================== */
 
 /* 1. Tokens --------------------------------------------------------------- */
+@font-face {
+  /* Pixelify Sans, SIL Open Font License (assets/fonts/OFL.txt). Self-hosted,
+     subset to Latin. */
+  font-family: "Pixelify Sans";
+  src: url("assets/fonts/PixelifySans.woff") format("woff");
+  font-weight: 400 700;
+  font-display: swap;
+}
+
 :root {
-  --bg: #0b0f0c;
-  --card: #111a14;
-  --card-hi: #142019;
+  /* 8-bit green ramp, dark to light */
+  --g0: #0b0f0c;
+  --g1: #111a14;
+  --g2: #172419;
+  --g3: #1f3325;
+  --g4: #2f5a3c;
+  --g5: #3f7d52;
+  --g6: #5fa36f;
+  --g7: #8fd8a5;
+  --g8: #d8f5e0;
+
+  --bg: var(--g0);
+  --card: var(--g1);
   --text: #f4f7f4;
   --muted: #9ba89d;    /* ~7.6:1 on the background */
-  --accent: #3f7d52;
-  --accent-bright: #5fa36f;
-  --mint: #8fd8a5;     /* highlights, ~11:1 */
+  --accent: var(--g5);
+  --accent-bright: var(--g6);
+  --mint: var(--g7);
   --border: #26382b;
   --border-hi: #3b5a44;
 
   --font: Inter, "Segoe UI Variable Text", "Segoe UI", system-ui, -apple-system,
     BlinkMacSystemFont, Roboto, "Helvetica Neue", sans-serif;
+  --pixel: "Pixelify Sans", ui-monospace, "Cascadia Code", Consolas, monospace;
   --mono: ui-monospace, "Cascadia Code", "SFMono-Regular", Menlo, Consolas, monospace;
 
   --width: 1080px;
-  --radius: 24px;
   --ease: cubic-bezier(0.2, 0.7, 0.2, 1);
 }
 
@@ -54,6 +76,7 @@ html {
 }
 
 body {
+  position: relative;
   margin: 0;
   min-height: 100vh;
   color: var(--text);
@@ -68,10 +91,25 @@ body {
   -webkit-font-smoothing: antialiased;
 }
 
+/* faint pixel grid over the top of the page */
+body::before {
+  content: "";
+  position: fixed;
+  inset: 0;
+  z-index: -1;
+  pointer-events: none;
+  background-image:
+    linear-gradient(rgba(143, 216, 165, 0.035) 2px, transparent 2px),
+    linear-gradient(90deg, rgba(143, 216, 165, 0.035) 2px, transparent 2px);
+  background-size: 24px 24px;
+  -webkit-mask-image: linear-gradient(180deg, #000, transparent 70%);
+  mask-image: linear-gradient(180deg, #000, transparent 70%);
+}
+
 a {
   color: var(--mint);
-  text-decoration-thickness: 1px;
-  text-underline-offset: 0.2em;
+  text-decoration-thickness: 2px;
+  text-underline-offset: 0.22em;
 }
 
 ::selection {
@@ -80,9 +118,8 @@ a {
 }
 
 :focus-visible {
-  outline: 2px solid var(--mint);
-  outline-offset: 3px;
-  border-radius: 6px;
+  outline: 3px solid var(--mint);
+  outline-offset: 4px;
 }
 
 .sr-only {
@@ -103,10 +140,9 @@ a {
   left: 12px;
   z-index: 100;
   padding: 8px 14px;
-  border-radius: 999px;
   background: var(--accent-bright);
   color: var(--bg);
-  font-weight: 600;
+  font-family: var(--pixel);
   text-decoration: none;
   transform: translateY(-200%);
 }
@@ -120,19 +156,45 @@ a {
   margin: 0 auto;
 }
 
-/* 3. Header --------------------------------------------------------------- */
+/* 3. Pixel borders ---------------------------------------------------------
+   A border drawn with four hard box-shadows. The corners are left out,
+   which gives the notched 8-bit look. --p is the pixel size, --bc the
+   colour; components add their own extra shadows after var(--px-border). */
+.btn,
+.card,
+.project,
+.focus-item,
+.tag,
+.brand-mark,
+.toast,
+kbd,
+.bubble,
+.overlay-label,
+.game-quit {
+  --p: 3px;
+  --bc: var(--border);
+  --px-border:
+    0 calc(-1 * var(--p)) 0 0 var(--bc),
+    0 var(--p) 0 0 var(--bc),
+    calc(-1 * var(--p)) 0 0 0 var(--bc),
+    var(--p) 0 0 0 var(--bc);
+  border: 0;
+  border-radius: 0;
+  box-shadow: var(--px-border);
+}
+
+/* 4. Header + progress bar ----------------------------------------------- */
 .topbar {
   position: sticky;
   top: 0;
   z-index: 50;
-  border-bottom: 1px solid transparent;
-  transition: background-color 0.3s, border-color 0.3s, backdrop-filter 0.3s;
+  border-bottom: 2px solid transparent;
+  transition: background-color 0.3s, border-color 0.3s;
 }
 
-/* script.js adds .scrolled once the page has moved */
 .topbar.scrolled {
-  background: rgba(11, 15, 12, 0.72);
-  border-bottom-color: rgba(38, 56, 43, 0.7);
+  background: rgba(11, 15, 12, 0.78);
+  border-bottom-color: rgba(38, 56, 43, 0.8);
   -webkit-backdrop-filter: blur(14px);
   backdrop-filter: blur(14px);
 }
@@ -150,31 +212,32 @@ a {
 .brand {
   display: inline-flex;
   align-items: center;
-  gap: 10px;
+  gap: 12px;
   color: var(--text);
-  font-weight: 700;
-  letter-spacing: -0.02em;
+  font-family: var(--pixel);
+  font-size: 1.1rem;
+  font-weight: 600;
   text-decoration: none;
 }
 
 .brand-mark {
+  --p: 2px;
+  --bc: var(--border-hi);
   display: grid;
   place-items: center;
-  width: 32px;
-  height: 32px;
-  border: 1px solid var(--border-hi);
-  border-radius: 10px;
-  background: linear-gradient(145deg, #1a2b1f, #0f1812);
+  width: 30px;
+  height: 30px;
+  background: var(--g2);
   color: var(--mint);
-  font-family: var(--mono);
-  font-size: 0.9rem;
+  font-family: var(--pixel);
+  font-size: 1rem;
   font-weight: 700;
-  transition: border-color 0.2s, box-shadow 0.2s;
+  transition: background-color 0.15s;
 }
 
 .brand:hover .brand-mark {
-  border-color: var(--accent-bright);
-  box-shadow: 0 0 18px rgba(95, 163, 111, 0.3);
+  --bc: var(--accent-bright);
+  background: var(--g3);
 }
 
 .nav {
@@ -184,43 +247,57 @@ a {
 
 .nav a {
   position: relative;
-  padding: 8px 14px;
-  border-radius: 999px;
+  padding: 8px 12px;
   color: var(--muted);
-  font-size: 0.92rem;
-  font-weight: 500;
+  font-family: var(--pixel);
+  font-size: 1rem;
   text-decoration: none;
-  transition: color 0.2s, background-color 0.2s;
+  transition: color 0.15s;
 }
 
 .nav a:hover {
   color: var(--text);
-  background: rgba(95, 163, 111, 0.08);
 }
 
-/* section currently on screen (set by script.js) */
+/* pixel pointer in front of the current section's link */
+.nav a::before {
+  content: "";
+  position: absolute;
+  left: -2px;
+  top: 50%;
+  width: 6px;
+  height: 6px;
+  background: var(--accent-bright);
+  transform: translateY(-50%) scale(0);
+  transition: transform 0.2s steps(3);
+}
+
 .nav a[aria-current="true"] {
   color: var(--text);
 }
 
-.nav a::after {
-  content: "";
+.nav a[aria-current="true"]::before {
+  transform: translateY(-50%) scale(1);
+}
+
+/* segmented progress bar under the header */
+.progress {
   position: absolute;
-  left: 14px;
-  right: 14px;
-  bottom: 3px;
-  height: 2px;
-  border-radius: 2px;
-  background: var(--accent-bright);
-  transform: scaleX(0);
-  transition: transform 0.35s var(--ease);
+  left: 0;
+  right: 0;
+  bottom: -2px;
+  height: 4px;
+  pointer-events: none;
 }
 
-.nav a[aria-current="true"]::after {
-  transform: scaleX(1);
+.progress i {
+  display: block;
+  width: 0;
+  height: 100%;
+  background: repeating-linear-gradient(90deg, var(--accent-bright) 0 9px, transparent 9px 12px);
 }
 
-/* 4. Hero + wave ---------------------------------------------------------- */
+/* 5. Hero + wave ---------------------------------------------------------- */
 .hero {
   position: relative;
   display: flex;
@@ -238,25 +315,45 @@ a {
 .eyebrow {
   margin: 0 0 18px;
   color: var(--accent-bright);
-  font-size: 0.85rem;
-  font-weight: 700;
-  letter-spacing: 0.14em;
+  font-family: var(--pixel);
+  font-size: 1rem;
+  letter-spacing: 0.08em;
   text-transform: uppercase;
 }
 
 .hero-title {
   margin: 0;
-  font-size: clamp(3.1rem, 8.4vw, 6.6rem);
-  font-weight: 800;
-  line-height: 0.95;
-  letter-spacing: -0.055em;
+  font-family: var(--pixel);
+  font-size: clamp(3rem, 7.4vw, 6rem);
+  font-weight: 600;
+  line-height: 1.02;
+  letter-spacing: 0.01em;
+  text-shadow: 0 5px 0 rgba(0, 0, 0, 0.35);
 }
 
+/* banded 8-bit gradient on the name */
 .accent {
-  background: linear-gradient(100deg, var(--text) 10%, var(--mint) 60%, var(--accent-bright));
+  background: linear-gradient(180deg, var(--g8) 0 34%, var(--g7) 34% 67%, var(--g6) 67%);
   -webkit-background-clip: text;
   background-clip: text;
   color: transparent;
+  text-shadow: none;
+}
+
+/* blinking block cursor after the name */
+.caret {
+  display: inline-block;
+  width: 0.42em;
+  height: 0.72em;
+  margin-left: 0.12em;
+  background: var(--mint);
+  animation: blink 1.05s steps(1) infinite;
+}
+
+@keyframes blink {
+  50% {
+    opacity: 0;
+  }
 }
 
 .intro {
@@ -270,7 +367,7 @@ a {
   max-width: 600px;
   margin: 26px 0 0;
   padding-left: 18px;
-  border-left: 3px solid var(--accent-bright);
+  border-left: 4px solid var(--accent-bright);
   color: rgba(244, 247, 244, 0.9);
   font-style: italic;
 }
@@ -282,43 +379,57 @@ a {
 .links {
   display: flex;
   flex-wrap: wrap;
-  gap: 12px;
+  gap: 16px;
   margin-top: 34px;
 }
 
+/* chunky press-down buttons */
 .btn {
+  --bc: var(--border-hi);
   display: inline-flex;
   align-items: center;
-  min-height: 44px;
-  padding: 10px 18px;
-  border: 1px solid var(--border);
-  border-radius: 999px;
-  background: rgba(17, 26, 20, 0.72);
+  min-height: 46px;
+  padding: 8px 18px 11px;
+  margin: 3px;
+  background: var(--g2);
   color: var(--text);
-  font-weight: 500;
+  font-family: var(--pixel);
+  font-size: 1.05rem;
   text-decoration: none;
-  transition: transform 0.25s var(--ease), border-color 0.25s, background-color 0.25s, box-shadow 0.25s;
+  box-shadow:
+    var(--px-border),
+    inset 0 -5px 0 0 rgba(0, 0, 0, 0.35),
+    inset 0 3px 0 0 rgba(255, 255, 255, 0.05);
+  transition: transform 0.1s steps(2), background-color 0.15s;
 }
 
 .btn:hover {
+  --bc: var(--accent-bright);
+  background: var(--g3);
   transform: translateY(-2px);
-  border-color: var(--accent-bright);
-  background: rgba(63, 125, 82, 0.16);
+}
+
+.btn:active {
+  transform: translateY(2px);
+  box-shadow: var(--px-border), inset 0 3px 0 0 rgba(0, 0, 0, 0.35);
 }
 
 .btn-primary {
-  border-color: var(--accent-bright);
-  background: var(--accent);
-  box-shadow: 0 8px 28px rgba(63, 125, 82, 0.28);
+  --bc: var(--g7);
+  background: var(--g5);
 }
 
 .btn-primary:hover {
-  background: var(--accent-bright);
+  --bc: var(--g8);
+  background: var(--g6);
   color: #06110a;
-  box-shadow: 0 10px 34px rgba(95, 163, 111, 0.38);
 }
 
-/* 3D wave on the right of the hero (drawn by script.js) */
+.btn:focus-visible {
+  outline-offset: 6px;
+}
+
+/* Pixel wave on the right of the hero (drawn by script.js) */
 .wave {
   position: absolute;
   right: -70px;
@@ -341,45 +452,51 @@ a {
   display: block;
   width: 100%;
   height: 100%;
+  image-rendering: pixelated;
 }
 
-/* 5. Sections + cards ----------------------------------------------------- */
+/* 6. Sections + cards ----------------------------------------------------- */
 .section {
   padding: 56px 0;
 }
 
 .section-index {
-  margin: 0 0 6px;
-  color: var(--accent-bright);
-  font-family: var(--mono);
-  font-size: 0.85rem;
+  display: inline-block;
+  margin: 0 0 10px;
+  padding: 2px 8px;
+  background: var(--g3);
+  color: var(--mint);
+  font-family: var(--pixel);
+  font-size: 0.9rem;
   letter-spacing: 0.06em;
 }
 
 .section-title {
-  margin: 0 0 26px;
-  font-size: clamp(1.9rem, 3.4vw, 2.6rem);
-  font-weight: 750;
+  margin: 0 0 28px;
+  font-family: var(--pixel);
+  font-size: clamp(2rem, 3.6vw, 2.8rem);
+  font-weight: 600;
   line-height: 1.1;
-  letter-spacing: -0.035em;
+  letter-spacing: 0.01em;
+  text-shadow: 0 4px 0 rgba(0, 0, 0, 0.35);
 }
 
 .sub-title {
-  margin: 40px 0 16px;
+  margin: 44px 0 18px;
   color: var(--muted);
-  font-size: 0.85rem;
-  font-weight: 700;
-  letter-spacing: 0.14em;
+  font-family: var(--pixel);
+  font-size: 1rem;
+  font-weight: 400;
+  letter-spacing: 0.08em;
   text-transform: uppercase;
 }
 
 .card {
   position: relative;
+  margin: 3px;
   padding: clamp(22px, 3vw, 34px);
-  border: 1px solid var(--border);
-  border-radius: var(--radius);
-  background: rgba(17, 26, 20, 0.78);
-  box-shadow: 0 20px 60px rgba(0, 0, 0, 0.28);
+  background: rgba(17, 26, 20, 0.88);
+  box-shadow: var(--px-border), 0 10px 0 0 rgba(0, 0, 0, 0.22);
 }
 
 .card p {
@@ -398,52 +515,57 @@ a {
   letter-spacing: -0.01em;
 }
 
-/* 6. Focus areas ---------------------------------------------------------- */
+/* 7. Focus areas + pixel icons ------------------------------------------- */
 .focus {
   display: grid;
   grid-template-columns: repeat(auto-fit, minmax(190px, 1fr));
-  gap: 12px;
+  gap: 16px;
   margin: 0;
-  padding: 0;
+  padding: 3px;
   list-style: none;
 }
 
 .focus-item {
   display: flex;
   align-items: center;
-  gap: 12px;
+  gap: 14px;
   padding: 16px 18px;
-  border: 1px solid var(--border);
-  border-radius: 18px;
-  background: rgba(17, 26, 20, 0.6);
+  background: rgba(17, 26, 20, 0.7);
   font-weight: 500;
-  transition: border-color 0.25s, translate 0.25s var(--ease), background-color 0.25s;
+  transition: transform 0.12s steps(2), background-color 0.15s;
 }
 
 .focus-item:hover {
-  translate: 0 -2px;
-  border-color: var(--border-hi);
-  background: var(--card-hi);
+  --bc: var(--accent-bright);
+  background: var(--g2);
 }
 
-.focus-item svg {
+/* pixel icons (drawn by script.js from small bitmaps) */
+.picon {
   flex: none;
-  width: 22px;
-  height: 22px;
-  fill: none;
-  stroke: var(--accent-bright);
-  stroke-width: 1.7;
-  stroke-linecap: round;
-  stroke-linejoin: round;
+  display: inline-block;
+  color: var(--accent-bright);
+  line-height: 0;
 }
 
-/* 7. Projects ------------------------------------------------------------- */
+.picon svg {
+  display: block;
+  width: auto;
+  height: 22px;
+  shape-rendering: crispEdges;
+}
+
+.focus-item:hover .picon {
+  color: var(--mint);
+}
+
+/* 8. Projects ------------------------------------------------------------- */
 .projects {
   display: grid;
   grid-template-columns: repeat(2, minmax(0, 1fr));
-  gap: 18px;
+  gap: 22px;
   margin: 0;
-  padding: 0;
+  padding: 3px;
   list-style: none;
 }
 
@@ -452,12 +574,10 @@ a {
   display: flex;
   flex-direction: column;
   padding: 26px 28px 24px;
-  border: 1px solid var(--border);
-  border-radius: var(--radius);
-  background: rgba(17, 26, 20, 0.78);
-  overflow: hidden;
+  background: rgba(17, 26, 20, 0.88);
   isolation: isolate; /* own stacking context: spotlight below, click layer above */
-  transition: translate 0.3s var(--ease), border-color 0.3s, box-shadow 0.3s;
+  box-shadow: var(--px-border), 0 10px 0 0 rgba(0, 0, 0, 0.22);
+  transition: transform 0.12s steps(2), box-shadow 0.12s steps(2);
 }
 
 /* soft spotlight that follows the pointer (position set by script.js) */
@@ -473,9 +593,8 @@ a {
 }
 
 .project:hover {
-  translate: 0 -4px;
-  border-color: var(--border-hi);
-  box-shadow: 0 24px 60px rgba(0, 0, 0, 0.35);
+  --bc: var(--accent-bright);
+  box-shadow: var(--px-border), 0 16px 0 0 rgba(0, 0, 0, 0.3);
 }
 
 .project:hover::before {
@@ -490,36 +609,35 @@ a {
 }
 
 .tag {
-  padding: 4px 10px;
-  border: 1px solid var(--border);
-  border-radius: 999px;
+  --p: 2px;
+  padding: 2px 9px;
+  margin: 2px;
+  background: var(--g2);
   color: var(--accent-bright);
-  font-family: var(--mono);
-  font-size: 0.75rem;
-  letter-spacing: 0.04em;
+  font-family: var(--pixel);
+  font-size: 0.85rem;
+}
+
+.arrow svg {
+  height: 18px;
 }
 
 .arrow {
-  width: 22px;
-  height: 22px;
-  fill: none;
-  stroke: var(--muted);
-  stroke-width: 1.8;
-  stroke-linecap: round;
-  stroke-linejoin: round;
-  transition: transform 0.3s var(--ease), stroke 0.3s;
+  color: var(--muted);
+  transition: transform 0.15s steps(2), color 0.15s;
 }
 
 .project:hover .arrow {
-  stroke: var(--mint);
+  color: var(--mint);
   transform: translate(3px, -3px);
 }
 
 .project-title {
   margin: 0 0 8px;
-  font-size: 1.45rem;
-  font-weight: 700;
-  letter-spacing: -0.025em;
+  font-family: var(--pixel);
+  font-size: 1.6rem;
+  font-weight: 600;
+  letter-spacing: 0.01em;
 }
 
 .project-title a {
@@ -532,8 +650,7 @@ a {
   content: "";
   position: absolute;
   inset: 0;
-  z-index: 1; /* above the card's text, so a click anywhere opens it */
-  border-radius: var(--radius);
+  z-index: 1;
 }
 
 .project p {
@@ -543,11 +660,11 @@ a {
 
 .project-meta {
   margin-top: auto !important;
-  padding-top: 8px;
   margin-bottom: 0 !important;
+  padding-top: 8px;
+  color: #7f8c81 !important;
   font-family: var(--mono);
   font-size: 0.8rem;
-  color: #7f8c81 !important;
 }
 
 /* links inside a clickable card sit above the card link */
@@ -557,7 +674,7 @@ a {
 }
 
 .project:focus-within {
-  border-color: var(--accent-bright);
+  --bc: var(--mint);
 }
 
 .stretched:focus-visible {
@@ -565,27 +682,39 @@ a {
 }
 
 .stretched:focus-visible::after {
-  outline: 2px solid var(--mint);
-  outline-offset: 3px;
+  outline: 3px solid var(--mint);
+  outline-offset: 6px;
 }
 
 .project-soon {
-  border-style: dashed;
-  background: rgba(17, 26, 20, 0.45);
+  --bc: #22332a;
+  background:
+    repeating-linear-gradient(135deg, rgba(38, 56, 43, 0.25) 0 6px, transparent 6px 12px),
+    rgba(17, 26, 20, 0.6);
 }
 
 .project-soon:hover {
-  translate: none;
-  box-shadow: none;
+  --bc: #22332a;
+  box-shadow: var(--px-border), 0 10px 0 0 rgba(0, 0, 0, 0.22);
 }
 
 .soon {
   color: var(--muted);
-  font-family: var(--mono);
-  font-size: 0.75rem;
+  font-family: var(--pixel);
+  font-size: 0.9rem;
 }
 
-/* 8. Now + contact -------------------------------------------------------- */
+.soon::after {
+  content: "";
+  display: inline-block;
+  width: 6px;
+  height: 6px;
+  margin-left: 6px;
+  background: var(--muted);
+  animation: blink 1s steps(1) infinite;
+}
+
+/* 9. Now + contact + mascot ---------------------------------------------- */
 .now-card {
   display: flex;
   gap: 18px;
@@ -596,47 +725,32 @@ a {
   font-size: 1.08rem;
 }
 
+/* blinking pixel "status light" */
 .live {
   flex: none;
-  position: relative;
   width: 10px;
   height: 10px;
   margin-top: 0.55em;
-  border-radius: 50%;
   background: var(--accent-bright);
-}
-
-.live::after {
-  content: "";
-  position: absolute;
-  inset: 0;
-  border-radius: 50%;
-  background: var(--accent-bright);
-  animation: ping 2.4s var(--ease) infinite;
-}
-
-@keyframes ping {
-  to {
-    transform: scale(3);
-    opacity: 0;
-  }
+  box-shadow: 0 0 0 3px var(--g3);
+  animation: blink 1.6s steps(1) infinite;
 }
 
 .contact-card {
-  overflow: hidden;
   text-align: center;
   padding: clamp(34px, 6vw, 64px) 24px;
   background:
     radial-gradient(ellipse at 50% 0%, rgba(95, 163, 111, 0.16), transparent 65%),
-    rgba(17, 26, 20, 0.78);
+    rgba(17, 26, 20, 0.88);
 }
 
 .contact-title {
   margin: 0 0 10px;
+  font-family: var(--pixel);
   font-size: clamp(2rem, 4.6vw, 3.4rem);
-  font-weight: 800;
-  line-height: 1.05;
-  letter-spacing: -0.045em;
+  font-weight: 600;
+  line-height: 1.08;
+  text-shadow: 0 5px 0 rgba(0, 0, 0, 0.35);
 }
 
 .contact-card .links {
@@ -644,7 +758,83 @@ a {
   margin-top: 26px;
 }
 
-/* 9. Footer, toast, hidden effects --------------------------------------- */
+/* Pixel robot */
+.mascot {
+  position: relative;
+  display: inline-flex;
+  flex-direction: column;
+  align-items: center;
+  margin: 0 0 18px;
+  padding: 0;
+  border: 0;
+  background: none;
+  color: inherit;
+  cursor: pointer;
+}
+
+.mascot[hidden] {
+  display: none;
+}
+
+.sprite {
+  display: block;
+  line-height: 0;
+  animation: bob 1.2s steps(2) infinite;
+}
+
+.sprite svg {
+  display: block;
+  width: 70px;
+  height: auto;
+  shape-rendering: crispEdges;
+}
+
+.sprite .blink-frame {
+  display: none;
+}
+
+.sprite.blinking .open-frame {
+  display: none;
+}
+
+.sprite.blinking .blink-frame {
+  display: block;
+}
+
+@keyframes bob {
+  50% {
+    transform: translateY(-4px);
+  }
+}
+
+.bubble {
+  --p: 2px;
+  --bc: var(--border-hi);
+  position: absolute;
+  bottom: calc(100% + 8px);
+  left: 50%;
+  padding: 4px 10px 6px;
+  background: var(--g2);
+  color: var(--text);
+  font-family: var(--pixel);
+  font-size: 0.9rem;
+  white-space: nowrap;
+  opacity: 0;
+  transform: translate(-50%, 6px);
+  transition: opacity 0.15s steps(2), transform 0.15s steps(2);
+}
+
+.mascot:hover .bubble,
+.mascot:focus-visible .bubble {
+  opacity: 1;
+  transform: translate(-50%, 0);
+}
+
+.mascot:hover .sprite {
+  animation-duration: 0.5s;
+}
+
+/* 10. Footer, toast, overlays, game -------------------------------------- */
 .footer {
   padding: 24px 0 48px;
   color: var(--muted);
@@ -657,54 +847,53 @@ a {
 }
 
 .footer-hint {
-  margin-top: 6px !important;
-  color: #6d7a70;
-  font-size: 0.8rem;
+  margin-top: 10px !important;
+  color: #7d8a80;
+  font-size: 0.85rem;
 }
 
 kbd {
-  padding: 1px 6px;
-  border: 1px solid var(--border);
-  border-radius: 6px;
-  background: var(--card);
-  color: var(--muted);
-  font-family: var(--mono);
-  font-size: 0.85em;
+  --p: 2px;
+  margin: 0 3px;
+  padding: 0 6px;
+  background: var(--g1);
+  color: var(--mint);
+  font-family: var(--pixel);
+  font-size: 0.95em;
 }
 
 .toast {
+  --bc: var(--border-hi);
   position: fixed;
   left: 50%;
   bottom: 24px;
   z-index: 60;
   width: max-content;
   max-width: min(440px, calc(100% - 32px));
-  padding: 14px 18px;
-  border: 1px solid var(--border-hi);
-  border-radius: 18px;
-  background: rgba(14, 22, 17, 0.94);
-  box-shadow: 0 20px 60px rgba(0, 0, 0, 0.5);
+  padding: 12px 18px 14px;
+  background: rgba(14, 22, 17, 0.97);
   color: var(--text);
   font-size: 0.95rem;
+  box-shadow: var(--px-border), 0 8px 0 0 rgba(0, 0, 0, 0.35);
   opacity: 0;
   visibility: hidden;
   transform: translate(-50%, 12px);
-  transition: opacity 0.3s var(--ease), transform 0.3s var(--ease), visibility 0s 0.3s;
+  transition: opacity 0.2s steps(3), transform 0.2s steps(3), visibility 0s 0.2s;
 }
 
 .toast.show {
   opacity: 1;
   visibility: visible;
   transform: translate(-50%, 0);
-  transition: opacity 0.3s var(--ease), transform 0.3s var(--ease);
+  transition: opacity 0.2s steps(3), transform 0.2s steps(3);
 }
 
 .toast-label {
   display: block;
   margin-bottom: 2px;
   color: var(--accent-bright);
-  font-family: var(--mono);
-  font-size: 0.75rem;
+  font-family: var(--pixel);
+  font-size: 0.9rem;
 }
 
 .toast pre {
@@ -715,14 +904,14 @@ kbd {
   line-height: 1.25;
 }
 
-/* full-screen canvases for "matrix" and the screensaver */
+/* full-screen canvases: matrix, screensaver, Bug Hop */
 .overlay {
   position: fixed;
   inset: 0;
   z-index: 80;
   background: var(--bg);
   opacity: 0;
-  transition: opacity 0.5s;
+  transition: opacity 0.4s;
   cursor: none;
 }
 
@@ -730,41 +919,70 @@ kbd {
   opacity: 1;
 }
 
+.overlay.game {
+  cursor: pointer;
+  touch-action: manipulation;
+}
+
+.overlay.game:focus {
+  outline: none;
+}
+
 .overlay canvas {
   position: absolute;
   inset: 0;
   width: 100%;
   height: 100%;
+  image-rendering: pixelated;
 }
 
 .overlay-label {
   position: absolute;
   right: 32px;
   bottom: 28px;
-  padding: 14px 18px;
-  border: 1px solid var(--border);
-  border-radius: 18px;
-  background: rgba(11, 15, 12, 0.75);
+  padding: 12px 18px 14px;
+  background: rgba(11, 15, 12, 0.8);
   color: var(--muted);
-  font-size: 0.8rem;
+  font-family: var(--pixel);
+  font-size: 0.9rem;
   text-align: right;
 }
 
 .overlay-label b {
   display: block;
   color: var(--text);
-  font-size: 2rem;
-  font-weight: 700;
-  letter-spacing: -0.03em;
+  font-size: 2.2rem;
+  font-weight: 600;
   font-variant-numeric: tabular-nums;
+}
+
+.game-quit {
+  --bc: var(--border-hi);
+  position: absolute;
+  top: 18px;
+  right: 18px;
+  z-index: 2;
+  min-height: 40px;
+  padding: 6px 14px 8px;
+  background: var(--g2);
+  color: var(--text);
+  font-family: var(--pixel);
+  font-size: 1rem;
+  cursor: pointer;
+}
+
+.game-quit:hover {
+  --bc: var(--accent-bright);
+  background: var(--g3);
 }
 
 /* Konami: a short colour cycle */
 .konami .accent,
 .konami .btn-primary,
 .konami .brand-mark,
-.konami .wave {
-  animation: hue 1.2s linear infinite;
+.konami .wave,
+.konami .sprite {
+  animation: hue 1.2s steps(12) infinite;
 }
 
 @keyframes hue {
@@ -773,14 +991,14 @@ kbd {
   }
 }
 
-/* 10. Entrance animations -------------------------------------------------
-   Elements with .reveal fade up as they scroll into view. Only when JS runs
-   (otherwise everything is visible straight away).                         */
+/* 11. Entrance animations -------------------------------------------------
+   Elements with .reveal step in as they scroll into view (only with JS).
+   Hover lifts use `translate`, so they never fight with this `transform`. */
 .js .reveal {
   opacity: 0;
-  transform: translateY(18px);
-  transition: opacity 0.7s var(--ease), transform 0.7s var(--ease);
-  transition-delay: var(--delay, 0s);
+  transform: translateY(16px);
+  transition: opacity 0.45s steps(4), transform 0.45s steps(4), translate 0.12s steps(2);
+  transition-delay: var(--delay, 0s), var(--delay, 0s), 0s;
 }
 
 .js .reveal.in {
@@ -788,15 +1006,24 @@ kbd {
   transform: none;
 }
 
-/* 11. Small screens + reduced motion -------------------------------------- */
+.focus-item:hover {
+  translate: 0 -3px;
+}
+
+.project:hover {
+  translate: 0 -6px;
+}
+
+.project-soon:hover {
+  translate: none;
+}
+
+/* 12. Small screens + reduced motion -------------------------------------- */
 @media (max-width: 860px) {
-  .wave {
+  .wave,
+  .wave.ready {
     width: 75%;
     right: -22%;
-    opacity: 0.55;
-  }
-
-  .wave.ready {
     opacity: 0.55;
   }
 
@@ -820,23 +1047,19 @@ kbd {
   }
 
   .nav a {
-    padding: 8px 10px;
-    font-size: 0.88rem;
+    padding: 8px 9px;
+    font-size: 0.95rem;
   }
 
-  .nav a::after {
-    left: 10px;
-    right: 10px;
-  }
-
-  .hero {
-    min-height: 0;
-    padding: 40px 0 48px;
+  .nav a::before {
+    left: -4px;
   }
 
   .hero {
     flex-direction: column;
     align-items: stretch;
+    min-height: 0;
+    padding: 40px 0 48px;
   }
 
   .wave,
@@ -888,5 +1111,4 @@ kbd {
     opacity: 1;
     transform: none;
   }
-
 }
