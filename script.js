@@ -5,6 +5,7 @@
      1. Header: background once you scroll, highlight of the current section
      2. Fade-up entrance for content as it scrolls into view
      3. Soft spotlight on project cards that follows the pointer
+     6. The 3D wave in the hero
      4. Hidden commands: type a word anywhere on the page
           whoami · sudo · coffee · quote · wave · matrix · warp
         plus the Konami code (up up down down left right left right b a)
@@ -101,6 +102,141 @@ const MESSAGES = {
       card.style.setProperty("--my", e.clientY - r.top + "px");
     });
   });
+
+  /* ---- 6. Hero wave -------------------------------------------------------
+     A grid of points forms a surface made of a few overlapping sine waves.
+     Every few seconds a bigger swell rolls across from right to left. It is
+     projected in simple 3D, drawn as glowing lines + dots, and tilts a little
+     toward the mouse. Pauses when off screen or in a background tab.      */
+  (function initWave() {
+    const canvas = document.getElementById("wave");
+    if (!canvas || !canvas.getContext) return;
+    const box = canvas.parentElement;
+    const ctx = canvas.getContext("2d");
+
+    const COLS = 52;
+    const ROWS = 30;
+    const LOW = [35, 74, 48];      // colour of the troughs
+    const HIGH = [190, 242, 205];  // colour of the crests
+    let w = 0, h = 0, focal = 0;
+    let tiltX = 0, tiltY = 0, aimX = 0, aimY = 0;
+    let running = false, visible = true, raf = 0, t0 = performance.now();
+
+    function size() {
+      const dpr = Math.min(window.devicePixelRatio || 1, 2);
+      w = canvas.clientWidth;
+      h = canvas.clientHeight;
+      if (!w || !h) return;
+      canvas.width = Math.round(w * dpr);
+      canvas.height = Math.round(h * dpr);
+      ctx.setTransform(dpr, 0, 0, dpr, 0, 0);
+      focal = Math.min(w, h) * 1.25;
+    }
+
+    // Height of the surface at (x, z), both in -1..1, at time t (seconds).
+    function surface(x, z, t) {
+      const swellX = 1.9 - ((t * 0.32) % 3.8);          // right -> left
+      const swell = 0.34 * Math.exp(-Math.pow((x - swellX) * 2.4, 2)) * (0.75 + 0.25 * Math.sin(z * 2.2 + t));
+      return 0.11 * Math.sin(x * 3.1 + t * 1.15) +
+             0.08 * Math.sin(z * 4.2 - t * 0.85 + x * 1.4) +
+             0.045 * Math.sin((x + z) * 7 - t * 1.9) +
+             swell;
+    }
+
+    function frame(now) {
+      const t = (now - t0) / 1000;
+      tiltX += (aimX - tiltX) * 0.05;
+      tiltY += (aimY - tiltY) * 0.05;
+      const yaw = -0.55 + tiltX * 0.3;
+      const pitch = 0.62 + tiltY * 0.16;
+      const cy = Math.cos(yaw), sy = Math.sin(yaw);
+      const cp = Math.cos(pitch), sp = Math.sin(pitch);
+      const dist = 3.4;
+
+      ctx.clearRect(0, 0, w, h);
+      const rows = [];
+      for (let r = 0; r < ROWS; r++) {
+        const z = (r / (ROWS - 1)) * 2 - 1;
+        const pts = [];
+        let depthSum = 0;
+        for (let c = 0; c < COLS; c++) {
+          const x = (c / (COLS - 1)) * 2 - 1;
+          const y = surface(x, z, t);
+          // world -> camera: yaw around the vertical axis, then pitch
+          const X = x * 1.55, Z = z * 1.55;
+          const x1 = X * cy - Z * sy;
+          const z1 = X * sy + Z * cy;
+          const y2 = y * cp - z1 * sp;
+          const z2 = y * sp + z1 * cp;
+          const s = focal / (dist + z2);
+          pts.push({ x: w / 2 + x1 * s, y: h * 0.52 - y2 * s, d: z2, k: y });
+          depthSum += z2;
+        }
+        rows.push({ pts: pts, depth: depthSum / COLS });
+      }
+      rows.sort(function (a, b) { return b.depth - a.depth; }); // far rows first
+
+      for (const row of rows) {
+        const near = Math.max(0, Math.min(1, (1.6 - row.depth) / 3.2)); // 0 far .. 1 near
+        // line through the row
+        ctx.beginPath();
+        row.pts.forEach(function (p, i) { if (i) ctx.lineTo(p.x, p.y); else ctx.moveTo(p.x, p.y); });
+        ctx.strokeStyle = "rgba(95,163,111," + (0.12 + near * 0.4).toFixed(3) + ")";
+        ctx.lineWidth = 0.7 + near * 0.9;
+        ctx.stroke();
+
+        // dots, coloured by height
+        for (const p of row.pts) {
+          const m = Math.max(0, Math.min(1, (p.k + 0.18) / 0.62));
+          const r = Math.round(LOW[0] + (HIGH[0] - LOW[0]) * m);
+          const g = Math.round(LOW[1] + (HIGH[1] - LOW[1]) * m);
+          const b = Math.round(LOW[2] + (HIGH[2] - LOW[2]) * m);
+          const a = Math.min(1, (0.45 + near * 0.6) * (0.55 + 0.6 * m));
+          const rad = (0.7 + near * 1.5) * (0.85 + m * 0.8);
+          if (m > 0.7) { // crest glow
+            ctx.fillStyle = "rgba(143,216,165," + (0.06 * (0.4 + near) * (m - 0.7) / 0.3).toFixed(3) + ")";
+            ctx.beginPath();
+            ctx.arc(p.x, p.y, rad * 2.6, 0, Math.PI * 2);
+            ctx.fill();
+          }
+          ctx.fillStyle = "rgba(" + r + "," + g + "," + b + "," + a.toFixed(3) + ")";
+          ctx.beginPath();
+          ctx.arc(p.x, p.y, rad, 0, Math.PI * 2);
+          ctx.fill();
+        }
+      }
+    }
+
+    function loop(now) {
+      raf = requestAnimationFrame(loop);
+      frame(now);
+    }
+
+    function update() {
+      const should = visible && !document.hidden && !REDUCED;
+      if (should && !running) { running = true; raf = requestAnimationFrame(loop); }
+      if (!should && running) { running = false; cancelAnimationFrame(raf); }
+    }
+
+    size();
+    if (REDUCED) frame(t0 + 2600); // one still frame, mid-swell
+    box.classList.add("ready");
+
+    window.addEventListener("resize", function () { size(); if (!running) frame(performance.now()); });
+    window.addEventListener("pointermove", function (e) {
+      if (e.pointerType !== "mouse") return;
+      aimX = e.clientX / window.innerWidth - 0.5;
+      aimY = e.clientY / window.innerHeight - 0.5;
+    }, { passive: true });
+    document.addEventListener("visibilitychange", update);
+    if ("IntersectionObserver" in window) {
+      new IntersectionObserver(function (entries) {
+        visible = entries[0].isIntersecting;
+        update();
+      }).observe(box);
+    }
+    update();
+  })();
 
   /* ---- 4. Hidden commands -------------------------------------------------- */
   let toastTimer = 0;

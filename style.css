@@ -6,7 +6,7 @@
      1. Tokens                  <- colours, fonts, sizes
      2. Base
      3. Header
-     4. Hero + circuit traces
+     4. Hero + wave
      5. Sections + cards
      6. Focus areas
      7. Projects
@@ -220,7 +220,7 @@ a {
   transform: scaleX(1);
 }
 
-/* 4. Hero + circuit traces ------------------------------------------------ */
+/* 4. Hero + wave ---------------------------------------------------------- */
 .hero {
   position: relative;
   display: flex;
@@ -318,59 +318,29 @@ a {
   box-shadow: 0 10px 34px rgba(95, 163, 111, 0.38);
 }
 
-/* Circuit traces behind the hero (right side) */
-.circuit {
+/* 3D wave on the right of the hero (drawn by script.js) */
+.wave {
   position: absolute;
-  right: -40px;
+  right: -70px;
   top: 50%;
-  width: min(620px, 58%);
-  height: auto;
+  width: min(700px, 60%);
+  aspect-ratio: 1.15;
   transform: translateY(-50%);
-  overflow: visible;
   pointer-events: none;
-  -webkit-mask-image: radial-gradient(ellipse at 60% 50%, #000 35%, transparent 75%);
-  mask-image: radial-gradient(ellipse at 60% 50%, #000 35%, transparent 75%);
+  -webkit-mask-image: radial-gradient(ellipse 50% 50% at 50% 50%, #000 68%, transparent 100%);
+  mask-image: radial-gradient(ellipse 50% 50% at 50% 50%, #000 68%, transparent 100%);
+  opacity: 0;
+  transition: opacity 1.2s var(--ease);
 }
 
-.traces path {
-  fill: none;
-  stroke: var(--border-hi);
-  stroke-width: 1.5;
-  opacity: 0.55;
+.wave.ready {
+  opacity: 1;
 }
 
-.nodes circle {
-  fill: var(--bg);
-  stroke: var(--accent);
-  stroke-width: 1.5;
-}
-
-.nodes .chip {
-  fill: rgba(17, 26, 20, 0.9);
-  stroke: var(--border-hi);
-  stroke-width: 1.5;
-}
-
-.pulse {
-  fill: none;
-  stroke: var(--mint);
-  stroke-width: 2;
-  stroke-linecap: round;
-  stroke-dasharray: 7 93;
-  stroke-dashoffset: 100;
-  filter: drop-shadow(0 0 4px rgba(143, 216, 165, 0.9));
-  animation: pulse 7s linear infinite;
-}
-
-.p2 { animation-duration: 8.5s; animation-delay: -3s; }
-.p3 { animation-duration: 6.5s; animation-delay: -5s; }
-.p4 { animation-duration: 9s; animation-delay: -1.5s; }
-.p5 { animation-duration: 7.5s; animation-delay: -6s; }
-
-@keyframes pulse {
-  to {
-    stroke-dashoffset: 0;
-  }
+.wave canvas {
+  display: block;
+  width: 100%;
+  height: 100%;
 }
 
 /* 5. Sections + cards ----------------------------------------------------- */
@@ -793,7 +763,7 @@ kbd {
 .konami .accent,
 .konami .btn-primary,
 .konami .brand-mark,
-.konami .pulse {
+.konami .wave {
   animation: hue 1.2s linear infinite;
 }
 
@@ -820,10 +790,14 @@ kbd {
 
 /* 11. Small screens + reduced motion -------------------------------------- */
 @media (max-width: 860px) {
-  .circuit {
-    opacity: 0.45;
-    width: 90%;
-    right: -30%;
+  .wave {
+    width: 75%;
+    right: -22%;
+    opacity: 0.55;
+  }
+
+  .wave.ready {
+    opacity: 0.55;
   }
 
   .projects {
@@ -860,8 +834,22 @@ kbd {
     padding: 40px 0 48px;
   }
 
-  .circuit {
-    display: none;
+  .hero {
+    flex-direction: column;
+    align-items: stretch;
+  }
+
+  .wave,
+  .wave.ready {
+    position: relative;
+    right: auto;
+    top: auto;
+    order: 2;
+    width: calc(100% + 32px);
+    margin: 18px -16px -20px;
+    aspect-ratio: 1.9;
+    transform: none;
+    opacity: 1;
   }
 
   .section {
@@ -901,7 +889,4 @@ kbd {
     transform: none;
   }
 
-  .pulse {
-    display: none;
-  }
 }
